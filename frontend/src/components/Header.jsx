@@ -38,7 +38,7 @@ export default function UttarHeader() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-3">
-            <button className="px-4 py-2 text-cyan-500 hover:text-cyan-600 font-medium transition-colors">
+            <button className="px-4 py-2 text-cyan-500 hover:text-cyan-600 border border-cyan-500 font-medium transition-colors rounded-md">
               Login
             </button>
             <button className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-md transition-colors">
