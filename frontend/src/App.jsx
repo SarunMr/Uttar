@@ -5,7 +5,11 @@ import Loginpage from "./pages/Loginpage.jsx";
 
 export default function App(){
   return(<>
-    <Homepage/>
-    <Loginpage/>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Homepage/>}></Route>
+        <Route path="/login" element={<Homepage/>}></Route>
+      </Routes>
+    </Router>
     </>);
 }
