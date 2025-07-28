@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 //Images and icons
-import LogoWhiteText from "./../assets/logo/LogoWhiteText.png";
+import LogoWhiteText from "./../../assets/logo/LogoWhiteText.png";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 export default function Footer() {
@@ -61,13 +61,13 @@ export default function Footer() {
                 Home
               </button>
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/auth/register")}
                 className="block text-gray-400 hover:text-cyan-400 transition-colors text-sm"
               >
                 Join Community
               </button>
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/auth/login")}
                 className="block text-gray-400 hover:text-cyan-400 transition-colors text-sm"
               >
                 Sign In
@@ -93,15 +93,15 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-400">
                 <Mail className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm">hello@stackclone.dev</span>
+                <span className="text-sm">sarunmaharjan38@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400">
                 <Phone className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm">+1 (555) 123-4567</span>
+                <span className="text-sm">+977 9808703816</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400">
                 <MapPin className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm">San Francisco, CA</span>
+                <span className="text-sm">Teku, Nepal</span>
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 StackClone. All rights reserved. Built for developers, by
+            © 2025 Uttar. All rights reserved. Built for developers, by
             developers.
           </p>
         </div>

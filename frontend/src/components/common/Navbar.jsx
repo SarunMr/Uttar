@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import LogoBlackText from "./../assets/logo/LogoBlackText.png";
+import LogoBlackText from "./../../assets/logo/LogoBlackText.png";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -8,6 +8,7 @@ export default function Navbar() {
 
   const isOnLoginPage = location.pathname === "/auth/login";
   const isOnRegisterPage = location.pathname === "/auth/register";
+  const isOnAuthPage = isOnLoginPage || isOnRegisterPage;
 
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
