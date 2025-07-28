@@ -63,46 +63,74 @@ export default function Register() {
     if (error) setError("");
   };
 
-  // Form validation
-  const validateForm = () => {
-    if (!formData.firstName.trim()) {
-      setError("First name is required");
-      return false;
-    }
-    if (!formData.lastName.trim()) {
-      setError("Last name is required");
-      return false;
-    }
-    if (!formData.username.trim()) {
-      setError("Username is required");
-      return false;
-    }
-    if (formData.username.length < 3) {
-      setError("Username must be at least 3 characters");
-      return false;
-    }
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Please enter a valid email");
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-    if (!formData.gender) {
-      setError("Please select your gender");
-      return false;
-    }
-    return true;
-  };
+const validateForm = () => {
+  if (!formData.firstName.trim()) {
+    setError("First name is required");
+    return false;
+  }
+
+  // Last Name validation
+  if (!formData.lastName.trim()) {
+    setError("Last name is required");
+    return false;
+  }
+
+  // Username validation
+  if (!formData.username.trim()) {
+    setError("Username is required");
+    return false;
+  }
+  if (formData.username.trim().length < 3) {
+    setError("Username must be at least 3 characters");
+    return false;
+  }
+  if (formData.username.trim().length > 30) {
+    setError("Username must be no more than 30 characters");
+    return false;
+  }
+  if (!/^[a-zA-Z0-9]+$/.test(formData.username.trim())) {
+    setError("Username can only contain letters and numbers");
+    return false;
+  }
+
+  // Email validation
+  if (!formData.email.trim()) {
+    setError("Email is required");
+    return false;
+  }
+  if (!/\S+@\S+\.\S+/.test(formData.email.trim())) {
+    setError("Please enter a valid email");
+    return false;
+  }
+
+  // Password validation
+  if (formData.password.length < 6) {
+    setError("Password must be at least 6 characters");
+    return false;
+  }
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+    setError("Password must contain at least one lowercase letter, one uppercase letter, and one number");
+    return false;
+  }
+
+  // Confirm Password validation
+  if (formData.password !== formData.confirmPassword) {
+    setError("Passwords do not match");
+    return false;
+  }
+
+  // Gender validation
+  if (!formData.gender) {
+    setError("Please select your gender");
+    return false;
+  }
+  if (!["male", "female", "other", "prefer-not-to-say"].includes(formData.gender)) {
+    setError("Please select a valid gender option");
+    return false;
+  }
+
+  return true;
+};
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -129,7 +157,7 @@ export default function Register() {
       console.log("Registration successful:", response.data);
 
       // Redirect to login page on success
-      navigate("auth/login", {
+      navigate("/auth/login", {
         state: { message: "Registration successful! Please log in." },
       });
     } catch (error) {
