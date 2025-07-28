@@ -21,7 +21,6 @@ export default function Loginpage() {
             <SidebarComponent />
           </div>
         )}
-
         {/* Main content */}
         <main className="flex-1 flex items-center justify-center p-4">
           <LoginComponent />
