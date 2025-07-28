@@ -28,9 +28,6 @@ export default function Navbar() {
           {isOnRegisterPage ? (
             // On Register page - show "Sign In" button
             <>
-              <span className="text-gray-600 text-sm">
-                Already have an account?
-              </span>
               <Button
                 variant="ghost"
                 onClick={() => navigate("/auth/login")}
@@ -42,9 +39,6 @@ export default function Navbar() {
           ) : isOnLoginPage ? (
             // On Login page - show "Sign Up" button
             <>
-              <span className="text-gray-600 text-sm">
-                Don't have an account?
-              </span>
               <Button
                 onClick={() => navigate("/auth/register")}
                 className="bg-cyan-600 hover:bg-cyan-700 text-white"

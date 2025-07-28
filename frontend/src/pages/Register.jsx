@@ -150,7 +150,7 @@ export default function Register() {
       <div className="flex items-center justify-center px-4 py-12">
         <Card className="w-full max-w-2xl shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 text-center">
-            <div className="w-16 h-16  flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <img src={Logo} alt="Mentaro Logo" className="h-10" />
             </div>
             <CardTitle className="text-3xl font-bold text-gray-900">
