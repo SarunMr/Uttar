@@ -108,10 +108,23 @@ const validateForm = () => {
     setError("Password must be at least 6 characters");
     return false;
   }
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-    setError("Password must contain at least one lowercase letter, one uppercase letter, and one number");
-    return false;
-  }
+// Check for lowercase letter
+if (!/[a-z]/.test(formData.password)) {
+  setError("Password must contain at least one lowercase letter");
+  return false;
+}
+
+// Check for uppercase letter
+if (!/[A-Z]/.test(formData.password)) {
+  setError("Password must contain at least one uppercase letter");
+  return false;
+}
+
+// Check for number
+if (!/\d/.test(formData.password)) {
+  setError("Password must contain at least one number");
+  return false;
+}
 
   // Confirm Password validation
   if (formData.password !== formData.confirmPassword) {
