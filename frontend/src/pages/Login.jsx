@@ -85,17 +85,31 @@ export default function Login() {
 
       console.log("Login successful:", response.data);
 
-      // Store token in localStorage (you might want to use a better storage method)
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
+      // Store token and user in localStorage
+      const { token, user } = response.data.data || {};
+
+      if (token) {
+        localStorage.setItem("token", token);
+        // Save user object as JSON
+        localStorage.setItem("user", JSON.stringify(user));
       }
 
-      // Redirect to dashboard or home page
-      navigate("/dashboard", {
-        state: { message: "Welcome back! Login successful." },
-      });
+      // Redirect by role
+      if (user?.role === "admin") {
+        navigate("/admin/home", {
+          state: { message: "Welcome admin!" },
+        });
+      } else {
+        navigate("/user/dashboard", {
+          state: { message: "Welcome user!" },
+        });
+      }
     } catch (error) {
       console.error("Login error:", error);
+
+      // Clear any previous login info on error (optional)
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
       if (error.response?.data?.message) {
         setError(error.response.data.message);

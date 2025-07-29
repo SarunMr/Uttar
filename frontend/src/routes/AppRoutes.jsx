@@ -3,7 +3,8 @@ import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import AuthLayout from "../layout/AuthLayout";
-import Dashboard from "../pages/Devlopers/Dashboard";
+import Admin from "../pages/Admin/Dashboard.jsx";
+import User from "../pages/Devlopers/Dashboard";
 
 export default function AppRoutes() {
   return (
@@ -17,7 +18,9 @@ export default function AppRoutes() {
         <Route path="register" element={<Register />} />
       </Route>
 
-        <Route path="/dashboard" element={<Dashboard />} />
+ {/* Protected Dashboards */}
+      <Route path="/user/dashboard" element={<User />} />
+      <Route path="/admin/home" element={<Admin />} />
     </Routes>
   );
 }
