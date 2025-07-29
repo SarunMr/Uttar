@@ -50,8 +50,28 @@ const loginValidation = [
 
   body("password").notEmpty().withMessage("Password is required"),
 ];
+const tagValidationRules = [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Tag name is required")
+    .isLength({ max: 50 })
+    .withMessage("Tag name must be at most 50 characters"),
+  body("description")
+    .trim()
+    .notEmpty()
+    .withMessage("Tag description is required")
+    .custom((value) => {
+      const wordCount = value.trim().split(/\s+/).length;
+      if (wordCount < 5) {
+        throw new Error("Description must have at least 5 words");
+      }
+      return true;
+    }),
+];
 
 module.exports = {
   registerValidation,
   loginValidation,
+  tagValidationRules,
 };

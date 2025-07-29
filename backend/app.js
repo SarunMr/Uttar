@@ -9,6 +9,7 @@ const { testConnection } = require('./viable/db');
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const tagRoutes = require('./routes/tags');
 
 // Create Express app
 const app = express();
@@ -44,6 +45,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/tags', tagRoutes);
 
 // 404 handler
 app.use((req, res) => {
