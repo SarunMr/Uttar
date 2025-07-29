@@ -5,6 +5,7 @@ import Register from "../pages/Register";
 import AuthLayout from "../layout/AuthLayout";
 import AdminLayout from "../layout/AdminLayout.jsx";
 import AdminHome from "../pages/Admin/Dashboard.jsx";
+import AdminTags from "../pages/Admin/Tags.jsx";
 import UserHome from "../pages/Devlopers/Dashboard";
 
 export default function AppRoutes() {
@@ -22,6 +23,7 @@ export default function AppRoutes() {
       {/* Protected Dashboards */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="home" element={<AdminHome />} />
+        <Route path="tags" element={<AdminTags />} />
       </Route>
 
       <Route path="/user" element={<AdminLayout />}>

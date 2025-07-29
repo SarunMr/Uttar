@@ -100,7 +100,7 @@ export default function Login() {
           state: { message: "Welcome admin!" },
         });
       } else {
-        navigate("/user/dashboard", {
+        navigate("/user/home", {
           state: { message: "Welcome user!" },
         });
       }

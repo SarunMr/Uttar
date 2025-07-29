@@ -1,16 +1,26 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Users, FileText } from "lucide-react";
+import {
+  Home,
+  Users,
+  FileText,
+  CircleQuestionMark,
+  Tags,
+  Bookmark,
+} from "lucide-react";
 import { cn } from "@/lib/utils"; // use your utility for className merge
 
 const menu = [
-  { to: "/admin/home", icon: Home, label: "Dashboard" },
-  { to: "/admin/users", icon: Users, label: "Manage Users" },
-  { to: "/admin/posts", icon: FileText, label: "All Posts" },
+  { to: "/admin/home", icon: Home, label: "Home" },
+  { to: "/admin/questions", icon: CircleQuestionMark, label: "Questions" },
+  { to: "/admin/saved", icon: Bookmark, label: "Saved" },
+  { to: "/admin/tags", icon: Tags, label: "Tags" },
+  { to: "/admin/users", icon: Users, label: "Manage Developers" },
+  { to: "/admin/posts", icon: FileText, label: "Handle Requests" },
 ];
 
 export default function AdminSidebar() {
   const { pathname } = useLocation();
-  
+
   return (
     <aside
       className={cn(
