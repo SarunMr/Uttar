@@ -3,9 +3,13 @@ import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import AuthLayout from "../layout/AuthLayout";
+//Admin Part
 import AdminLayout from "../layout/AdminLayout.jsx";
 import AdminHome from "../pages/Admin/Dashboard.jsx";
+import AdminQuestions from "../pages/Admin/Questions.jsx";
 import AdminTags from "../pages/Admin/Tags.jsx";
+import AskQuestions from "../pages/Admin/AskQuestions.jsx";
+
 import UserHome from "../pages/Devlopers/Dashboard";
 import UserTags from "../pages/Devlopers/Tags.jsx";
 import DeveloperLayout from "../layout/DevelopersLayout.jsx";
@@ -26,6 +30,8 @@ export default function AppRoutes() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="home" element={<AdminHome />} />
         <Route path="tags" element={<AdminTags />} />
+        <Route path="questions" element={<AdminQuestions />} />
+        <Route path="questions/ask" element={<AskQuestions />} />
       </Route>
 
       <Route path="/user" element={<DeveloperLayout />}>
