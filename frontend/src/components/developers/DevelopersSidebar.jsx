@@ -1,11 +1,18 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Users, FileText } from "lucide-react";
+import {
+  Home,
+  FileText,
+  CircleQuestionMark,
+  Tags,
+  Bookmark,
+} from "lucide-react";
 import { cn } from "@/lib/utils"; // use your utility for className merge
 
 const menu = [
-  { to: "/user/home", icon: Home, label: "Dashboard" },
-  { to: "/admin/users", icon: Users, label: "Manage Users" },
-  { to: "/admin/posts", icon: FileText, label: "All Posts" },
+  { to: "/user/home", icon: Home, label: "Home" },
+  { to: "/user/questions", icon: CircleQuestionMark, label: "Questions" },
+  { to: "/user/saved", icon: Bookmark, label: "Saved" },
+  { to: "/user/tags", icon: Tags, label: "Tags" },
 ];
 
 export default function DevelopersSidebar() {

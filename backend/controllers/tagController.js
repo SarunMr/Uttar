@@ -1,6 +1,23 @@
 const { validationResult } = require("express-validator");
+const { Op } = require('sequelize');
 const Tag = require("../models/Tag");
 
+const getUserTags = async (req, res) => {
+  try {
+    const tags = await Tag.findAll({
+      where: {
+        name: {
+          [Op.ne]: 'admin' // Exclude admin tag for regular users
+        }
+      },
+      order: [['name', 'ASC']]
+    });
+    res.status(200).json({ success: true, data: tags });
+  } catch (error) {
+    console.error('Get user tags error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch tags.' });
+  }
+};
 // Get all tags
 const getAllTags = async (req, res) => {
   try {
@@ -136,6 +153,7 @@ const deleteTag = async (req, res) => {
 
 module.exports = {
   getAllTags,
+  getUserTags,
   createTag,
   updateTag,
   deleteTag,

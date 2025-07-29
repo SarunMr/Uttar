@@ -8,6 +8,20 @@ const axiosConfig = {
     Authorization: `Bearer ${token}`,
   },
 };
+// Get token from localStorage
+const getAuthConfig = () => {
+  const token = localStorage.getItem("token");
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
+
+// Fetch all tags (for users - will exclude admin tag in backend)
+export const fetchUserTags = () => {
+  return axios.get(`${API_BASE}/tags/user`, getAuthConfig());
+};
 
 export const fetchTags = () => {
   return axios.get(`${API_BASE}/tags`, axiosConfig);
