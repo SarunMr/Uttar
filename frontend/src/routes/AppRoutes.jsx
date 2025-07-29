@@ -3,7 +3,8 @@ import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import AuthLayout from "../layout/AuthLayout";
-import Admin from "../pages/Admin/Dashboard.jsx";
+import AdminLayout from "../layout/AdminLayout.jsx";
+import AdminHome from "../pages/Admin/Dashboard.jsx";
 import User from "../pages/Devlopers/Dashboard";
 
 export default function AppRoutes() {
@@ -18,9 +19,11 @@ export default function AppRoutes() {
         <Route path="register" element={<Register />} />
       </Route>
 
- {/* Protected Dashboards */}
+      {/* Protected Dashboards */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="home" element={<AdminHome />} />
+      </Route>
       <Route path="/user/dashboard" element={<User />} />
-      <Route path="/admin/home" element={<Admin />} />
     </Routes>
   );
 }

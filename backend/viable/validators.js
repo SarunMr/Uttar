@@ -46,7 +46,6 @@ const loginValidation = [
   body("email")
     .trim()
     .isEmail()
-    .normalizeEmail()
     .withMessage("Please provide a valid email address"),
 
   body("password").notEmpty().withMessage("Password is required"),
