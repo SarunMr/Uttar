@@ -7,6 +7,7 @@ import AdminLayout from "../layout/AdminLayout.jsx";
 import AdminHome from "../pages/Admin/Dashboard.jsx";
 import AdminTags from "../pages/Admin/Tags.jsx";
 import UserHome from "../pages/Devlopers/Dashboard";
+import DeveloperLayout from "../layout/DevelopersLayout.jsx";
 
 export default function AppRoutes() {
   return (
@@ -26,7 +27,7 @@ export default function AppRoutes() {
         <Route path="tags" element={<AdminTags />} />
       </Route>
 
-      <Route path="/user" element={<AdminLayout />}>
+      <Route path="/user" element={<DeveloperLayout />}>
       <Route path="home" element={<UserHome />} />
       </Route>
     </Routes>

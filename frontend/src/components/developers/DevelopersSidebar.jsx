@@ -3,7 +3,7 @@ import { Home, Users, FileText } from "lucide-react";
 import { cn } from "@/lib/utils"; // use your utility for className merge
 
 const menu = [
-  { to: "/admin/home", icon: Home, label: "Dashboard" },
+  { to: "/user/home", icon: Home, label: "Dashboard" },
   { to: "/admin/users", icon: Users, label: "Manage Users" },
   { to: "/admin/posts", icon: FileText, label: "All Posts" },
 ];

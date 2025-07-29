@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 // Dialog Components
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogTitle,
   DialogDescription,
@@ -23,118 +16,72 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Search, Plus, Edit, Trash, Eye, X, AlertTriangle } from "lucide-react";
+import {
+  fetchTags as apiFetchTags,
+  createTag as apiCreateTag,
+  updateTag as apiUpdateTag,
+  deleteTag as apiDeleteTag,
+} from "../../api/tagsApi.jsx";
 
 export default function AdminTags() {
   // List of tags (load from backend later)
   const [tags, setTags] = useState([]);
-
-  // Search term & pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const tagsPerPage = 9;
 
-  // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [editTag, setEditTag] = useState(null);
 
-  // Preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewTag, setPreviewTag] = useState(null);
 
-  // Delete confirmation modal state
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState(null);
 
-  // Form state
   const [tagName, setTagName] = useState("");
   const [tagDescription, setTagDescription] = useState("");
 
-  // Validation errors
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   // Filter tags by search term
   const filteredTags = tags.filter((tag) =>
     tag.name.toLowerCase().includes(searchTerm.trim().toLowerCase()),
   );
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredTags.length / tagsPerPage);
   const paginatedTags = filteredTags.slice(
     (currentPage - 1) * tagsPerPage,
     currentPage * tagsPerPage,
   );
 
-  // Reset page if searchTerm changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  // Initialize tags data (mock for now)
+  // Fetch tags from API on mount
   useEffect(() => {
-    setTags([
-      {
-        id: 1,
-        name: "admin",
-        description:
-          "Special tag for admin panel only - used for administrative purposes and internal discussions",
-        isSpecial: true,
-      },
-      {
-        id: 2,
-        name: "request",
-        description:
-          "Special tag for user requests - handles feature requests and user feedback",
-        isSpecial: true,
-      },
-      {
-        id: 3,
-        name: "react",
-        description:
-          "Questions related to React.js framework, components, hooks, and related ecosystem",
-      },
-      {
-        id: 4,
-        name: "nodejs",
-        description:
-          "Questions and posts related to Node.js backend development, npm packages, and server-side JavaScript",
-      },
-      {
-        id: 5,
-        name: "javascript",
-        description:
-          "General JavaScript programming questions, ES6+, DOM manipulation, and browser APIs",
-      },
-      {
-        id: 6,
-        name: "css",
-        description:
-          "Cascading Style Sheets questions, styling, layouts, animations, and responsive design",
-      },
-      {
-        id: 7,
-        name: "typescript",
-        description:
-          "All things TypeScript including types, interfaces and advanced usage",
-      },
-      {
-        id: 8,
-        name: "graphql",
-        description: "GraphQL queries, schema design, and API integration",
-      },
-      {
-        id: 9,
-        name: "docker",
-        description: "Containerization, Dockerfiles, and orchestration",
-      },
-      {
-        id: 10,
-        name: "kubernetes",
-        description: "K8s cluster management, pods, services, and deployments",
-      },
-    ]);
+    loadTags();
   }, []);
 
-  // Validation function
+  const loadTags = async () => {
+    setLoading(true);
+    try {
+      const response = await apiFetchTags();
+      if (response.data.success) {
+        setTags(response.data.data);
+      } else {
+        alert("Failed to fetch tags from server.");
+      }
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      alert("An error occurred while fetching tags.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const validateForm = () => {
     const errs = {};
     if (!tagName.trim()) {
@@ -148,77 +95,95 @@ export default function AdminTags() {
     ) {
       errs.name = "Tag with this name already exists";
     }
-
     if (!tagDescription.trim()) {
       errs.description = "Tag description is required";
     } else {
-      // Check word count >= 5 words
       const wordCount = tagDescription.trim().split(/\s+/).length;
       if (wordCount < 5) {
         errs.description = "Description must have at least 5 words";
       }
     }
-
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    if (editTag) {
-      // Update
-      setTags((prev) =>
-        prev.map((tag) =>
-          tag.id === editTag.id
-            ? {
-                ...tag,
-                name: tagName.trim(),
-                description: tagDescription.trim(),
-              }
-            : tag,
-        ),
-      );
-    } else {
-      // Add new tag
-      const newTag = {
-        id: Date.now(),
-        name: tagName.trim(),
-        description: tagDescription.trim(),
-      };
-      setTags((prev) => [...prev, newTag]);
+    setLoading(true);
+    try {
+      if (editTag) {
+        // Update tag API
+        const response = await apiUpdateTag(editTag.id, {
+          name: tagName.trim(),
+          description: tagDescription.trim(),
+        });
+        if (response.data.success) {
+          setTags((prev) =>
+            prev.map((tag) =>
+              tag.id === editTag.id ? response.data.data : tag,
+            ),
+          );
+          setModalOpen(false);
+          setErrors({});
+        } else {
+          alert(response.data.message || "Failed to update tag");
+        }
+      } else {
+        // Create new tag API
+        const response = await apiCreateTag({
+          name: tagName.trim(),
+          description: tagDescription.trim(),
+        });
+        if (response.data.success) {
+          setTags((prev) => [...prev, response.data.data]);
+          setModalOpen(false);
+          setErrors({});
+        } else {
+          alert(response.data.message || "Failed to create tag");
+        }
+      }
+    } catch (error) {
+      console.error("Error saving tag:", error);
+      alert("An error occurred while saving tag.");
+    } finally {
+      setLoading(false);
     }
-    setModalOpen(false);
-    setErrors({});
   };
 
-  // Open delete confirmation dialog
   const handleDeleteClick = (tag) => {
-    console.log("Delete clicked for tag:", tag);
     if (tag.isSpecial) {
-      // For special tags, we could show a different dialog or just return
-      console.log("Cannot delete special tag");
+      alert("Cannot delete special tags.");
       return;
     }
     setTagToDelete(tag);
     setDeleteOpen(true);
   };
 
-  // Confirm delete action
-  const confirmDelete = () => {
-    if (tagToDelete) {
-      console.log("Confirming delete for tag:", tagToDelete);
-      setTags((prev) => prev.filter((t) => t.id !== tagToDelete.id));
-      setDeleteOpen(false);
-      setTagToDelete(null);
+  const confirmDelete = async () => {
+    if (!tagToDelete) return;
+    setLoading(true);
+    try {
+      const response = await apiDeleteTag(tagToDelete.id);
+      if (response.data.success) {
+        setTags((prev) => prev.filter((tag) => tag.id !== tagToDelete.id));
+        setDeleteOpen(false);
+        setTagToDelete(null);
+      } else {
+        alert(response.data.message || "Failed to delete tag");
+      }
+    } catch (error) {
+      console.error("Error deleting tag:", error);
+      alert("An error occurred while deleting the tag.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Cancel delete action
   const cancelDelete = () => {
     setDeleteOpen(false);
     setTagToDelete(null);
@@ -229,13 +194,6 @@ export default function AdminTags() {
     return text.slice(0, maxLength) + "...";
   };
 
-  // Open preview modal
-  const openPreviewModal = (tag) => {
-    setPreviewTag(tag);
-    setPreviewOpen(true);
-  };
-
-  // Pagination controls
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
@@ -314,6 +272,7 @@ export default function AdminTags() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pr-10 border-cyan-200 focus:border-cyan-400 focus:ring-cyan-400"
+              disabled={loading}
             />
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
@@ -321,6 +280,7 @@ export default function AdminTags() {
 
         <div className="flex items-end">
           <Button
+            disabled={loading}
             onClick={() => {
               setEditTag(null);
               setTagName("");
@@ -339,7 +299,11 @@ export default function AdminTags() {
       {/* Tags Grid */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto border rounded-lg p-4 bg-white shadow-sm">
-          {paginatedTags.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <p className="text-gray-600">Loading tags...</p>
+            </div>
+          ) : paginatedTags.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-gray-500">
               <Search className="h-12 w-12 mb-4 text-gray-300" />
               <p className="text-lg font-medium">No tags found</p>
@@ -402,6 +366,7 @@ export default function AdminTags() {
                             }}
                             className="hover:bg-cyan-50 hover:border-cyan-300"
                             aria-label={`Edit tag ${tag.name}`}
+                            disabled={loading}
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -411,6 +376,7 @@ export default function AdminTags() {
                             onClick={() => handleDeleteClick(tag)}
                             className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                             aria-label={`Delete tag ${tag.name}`}
+                            disabled={loading}
                           >
                             <Trash className="h-3 w-3" />
                           </Button>
@@ -425,6 +391,7 @@ export default function AdminTags() {
                         }}
                         className="hover:bg-gray-50"
                         aria-label={`Preview tag ${tag.name}`}
+                        disabled={loading}
                       >
                         <Eye className="h-3 w-3" />
                       </Button>
