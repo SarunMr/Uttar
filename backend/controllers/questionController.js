@@ -1,5 +1,6 @@
 // controllers/questionController.js
-const { Question, Tag } = require("../models");
+const Question = require("../models/Question");
+const Tag = require("../models/Tag");
 
 exports.createQuestion = async (req, res) => {
   try {

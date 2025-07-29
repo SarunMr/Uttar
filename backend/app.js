@@ -11,7 +11,7 @@ const { testConnection } = require('./viable/db');
 const authRoutes = require('./routes/auth');
 const tagRoutes = require('./routes/tags');
 const questionsRouter = require("./routes/questions");
-const uploadRouter = require("./routes/upload");
+const uploadRouter = require("./routes/uplaod");
 
 // Create Express app
 const app = express();

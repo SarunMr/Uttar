@@ -1,8 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../viable/db");
 
-const Tag = sequelize.define(
-  "Tag",
+const Tag = sequelize.define("Tag",
   {
     id: {
       type: DataTypes.INTEGER,
