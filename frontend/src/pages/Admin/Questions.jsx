@@ -21,6 +21,7 @@ import {
   Filter,
   User,
   Calendar,
+  Tag,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -60,6 +61,7 @@ export default function AdminQuestions() {
             lastName: "Doe",
           },
           images: ["/api/images/react-performance.png"],
+          tags: ["admin", "react", "javascript"], // Added tags
           likes: 15,
           views: 234,
           comments: 8,
@@ -78,6 +80,7 @@ export default function AdminQuestions() {
             lastName: "Developer",
           },
           images: [],
+          tags: ["nodejs", "javascript"], // Added tags
           likes: 23,
           views: 456,
           comments: 12,
@@ -96,6 +99,7 @@ export default function AdminQuestions() {
             lastName: "Smith",
           },
           images: ["/api/images/css-layout1.png", "/api/images/css-layout2.png"],
+          tags: ["css"], // Added tags
           likes: 8,
           views: 167,
           comments: 0,
@@ -114,13 +118,13 @@ export default function AdminQuestions() {
             lastName: "Johnson",
           },
           images: [],
+          tags: ["docker"], // Added tags
           likes: 31,
           views: 789,
           comments: 0,
           createdAt: "2024-01-12T14:45:00Z",
           updatedAt: "2024-01-12T14:45:00Z",
         },
-        // Add more mock questions for pagination testing
         {
           id: 5,
           title: "TypeScript generic constraints best practices",
@@ -133,6 +137,7 @@ export default function AdminQuestions() {
             lastName: "Wilson",
           },
           images: [],
+          tags: ["typescript", "javascript"], // Added tags
           likes: 12,
           views: 98,
           comments: 3,
@@ -151,6 +156,7 @@ export default function AdminQuestions() {
             lastName: "Brown",
           },
           images: [],
+          tags: ["admin", "react", "nodejs"], // Added tags with admin tag
           likes: 18,
           views: 321,
           comments: 5,
@@ -169,6 +175,7 @@ export default function AdminQuestions() {
             lastName: "Davis",
           },
           images: [],
+          tags: ["mongodb"], // Added tags
           likes: 9,
           views: 156,
           comments: 2,
@@ -187,6 +194,7 @@ export default function AdminQuestions() {
             lastName: "Taylor",
           },
           images: [],
+          tags: ["javascript", "react"], // Added tags
           likes: 14,
           views: 203,
           comments: 7,
@@ -205,6 +213,7 @@ export default function AdminQuestions() {
             lastName: "Garcia",
           },
           images: [],
+          tags: ["nodejs", "javascript"], // Added tags
           likes: 22,
           views: 445,
           comments: 11,
@@ -223,6 +232,7 @@ export default function AdminQuestions() {
             lastName: "Martinez",
           },
           images: [],
+          tags: ["admin", "react", "javascript"], // Added tags with admin tag
           likes: 16,
           views: 289,
           comments: 4,
@@ -238,7 +248,8 @@ export default function AdminQuestions() {
   useEffect(() => {
     let filtered = questions.filter((q) =>
       q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.content.toLowerCase().includes(searchTerm.toLowerCase())
+      q.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) // Added tag search
     );
 
     switch (filterType) {
@@ -328,7 +339,7 @@ export default function AdminQuestions() {
         <div className="flex-1">
           <div className="relative">
             <Input
-              placeholder="Search questions..."
+              placeholder="Search questions, content, or tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pr-10 border-cyan-200 focus:border-cyan-400"
@@ -383,6 +394,34 @@ export default function AdminQuestions() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
+                  {/* Tags Section */}
+                  {question.tags && question.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {question.tags.slice(0, 4).map((tagName) => (
+                        <Badge
+                          key={tagName}
+                          variant="secondary"
+                          className={cn(
+                            "text-xs font-medium flex items-center gap-1",
+                            tagName === "admin" 
+                              ? "bg-cyan-100 text-cyan-800 border border-cyan-200" 
+                              : tagName === "request"
+                              ? "bg-blue-100 text-blue-800 border border-blue-200"
+                              : "bg-gray-100 text-gray-800"
+                          )}
+                        >
+                          <Tag className="h-2.5 w-2.5" />
+                          {tagName}
+                        </Badge>
+                      ))}
+                      {question.tags.length > 4 && (
+                        <Badge variant="outline" className="text-xs text-gray-500">
+                          +{question.tags.length - 4} more
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
                   {/* Author and Date */}
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <User className="h-4 w-4" />
