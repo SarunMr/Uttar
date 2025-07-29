@@ -10,16 +10,15 @@ const menu = [
 
 export default function AdminSidebar() {
   const { pathname } = useLocation();
-
+  
   return (
     <aside
       className={cn(
-        "bg-white border-r border-cyan-200 h-[calc(100vh-4rem)] mt-0", // 4rem = Navbar height(16) for sticky
+        "bg-white border-r border-cyan-200",
         "flex-shrink-0 transition-all",
-        "w-64 hidden md:flex flex-col", // desktop: 256px sidebar, flex, not toggleable
-        "fixed md:relative z-30", // fixed for sticky sidebar on mobile, relative on desktop
+        "w-64 hidden md:flex flex-col", // desktop: 256px sidebar, flex
+        "h-full", // Let the parent container handle the height
       )}
-      style={{ top: "4rem" }} // beneath the navbar
     >
       <nav className="flex flex-col py-6 gap-2">
         {menu.map((item) => (
