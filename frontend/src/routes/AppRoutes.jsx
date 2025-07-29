@@ -5,7 +5,7 @@ import Register from "../pages/Register";
 import AuthLayout from "../layout/AuthLayout";
 import AdminLayout from "../layout/AdminLayout.jsx";
 import AdminHome from "../pages/Admin/Dashboard.jsx";
-import User from "../pages/Devlopers/Dashboard";
+import UserHome from "../pages/Devlopers/Dashboard";
 
 export default function AppRoutes() {
   return (
@@ -23,7 +23,10 @@ export default function AppRoutes() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="home" element={<AdminHome />} />
       </Route>
-      <Route path="/user/dashboard" element={<User />} />
+
+      <Route path="/user" element={<AdminLayout />}>
+      <Route path="home" element={<UserHome />} />
+      </Route>
     </Routes>
   );
 }

@@ -7,32 +7,32 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, Bookmark, FileText } from "lucide-react";
+import {  LogOut, Settings, Bookmark, FileText } from "lucide-react";
 import LogoBlackText from "./../../assets/logo/LogoBlackText.png";
 
-export default function AdminNavbar() {
+export default function DevelopersNavbar() {
   const navigate = useNavigate();
   // Get user from localStorage safely, provide placeholders if missing
   const userStr = localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
   const usernameDisplay = user?.username?.trim() || "AdminUser";
   const emailDisplay = user?.email?.trim() || "admin@example.com";
-
+  
   const logout = () => {
     localStorage.clear();
     navigate("/auth/login");
   };
-
+  
   return (
     <nav className="w-full bg-white border-b border-cyan-200 px-6 h-16 flex items-center sticky top-0 z-40">
       {/* Left section: logo and title */}
       <div className="flex items-center gap-3">
-        <img src={LogoBlackText} alt="Mentaro Logo" className="h-10" />
+            <img src={LogoBlackText} alt="Mentaro Logo" className="h-10" />
       </div>
-
+      
       {/* Spacer */}
       <div className="flex-1" />
-
+      
       {/* Right section: Avatar & Dropdown Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -51,7 +51,7 @@ export default function AdminNavbar() {
             <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-white shadow-sm"></div>
           </button>
         </DropdownMenuTrigger>
-
+        
         <DropdownMenuContent align="end" className="w-60">
           {/* User info - now inside DropdownMenuContent */}
           <div className="px-4 py-3 select-none bg-gradient-to-r from-cyan-50 to-blue-50 border-b">
@@ -67,16 +67,10 @@ export default function AdminNavbar() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <div
-                  className="font-semibold text-gray-900 text-sm truncate"
-                  title={usernameDisplay}
-                >
+                <div className="font-semibold text-gray-900 text-sm truncate" title={usernameDisplay}>
                   {usernameDisplay}
                 </div>
-                <div
-                  className="text-gray-600 text-xs truncate"
-                  title={emailDisplay}
-                >
+                <div className="text-gray-600 text-xs truncate" title={emailDisplay}>
                   {emailDisplay}
                 </div>
               </div>
@@ -86,9 +80,9 @@ export default function AdminNavbar() {
               <span className="text-green-600 text-xs font-medium">Online</span>
             </div>
           </div>
-
+          
           <DropdownMenuSeparator />
-
+          
           {/* My Posts */}
           <DropdownMenuItem
             onClick={() => navigate("/admin/posts")}
@@ -97,7 +91,7 @@ export default function AdminNavbar() {
             <FileText className="mr-3 h-4 w-4 text-blue-600" />
             <span>My Posts</span>
           </DropdownMenuItem>
-
+          
           {/* Saved */}
           <DropdownMenuItem
             onClick={() => navigate("/admin/saved")}
@@ -106,9 +100,9 @@ export default function AdminNavbar() {
             <Bookmark className="mr-3 h-4 w-4 text-amber-600" />
             <span>Saved</span>
           </DropdownMenuItem>
-
+          
           <DropdownMenuSeparator />
-
+          
           {/* Settings */}
           <DropdownMenuItem
             onClick={() => navigate("/admin/settings")}
@@ -117,7 +111,7 @@ export default function AdminNavbar() {
             <Settings className="mr-3 h-4 w-4 text-gray-600" />
             <span>Settings</span>
           </DropdownMenuItem>
-
+          
           {/* Logout */}
           <DropdownMenuItem
             onClick={logout}
