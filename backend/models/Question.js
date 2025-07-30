@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const { sequelize } = require("../viable/db"); // adjust this path
+const { sequelize } = require("../viable/db");
 
 const Question = sequelize.define(
   "Question",
@@ -22,7 +22,7 @@ const Question = sequelize.define(
       allowNull: false,
     },
     images: {
-      type: DataTypes.ARRAY(DataTypes.STRING), // or DataTypes.JSON for MySQL
+      type: DataTypes.ARRAY(DataTypes.STRING), // Postgres array of strings for image URLs
       allowNull: true,
     },
     likes: {
@@ -37,20 +37,15 @@ const Question = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    authorId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: "users", key: "id" },
+    },
   },
   {
-    timestamps: true, // handles createdAt & updatedAt automatically
+    timestamps: true,
   },
 );
-
-// Associations
-Question.associate = function (models) {
-  Question.belongsTo(models.User, { as: "author", foreignKey: "authorId" });
-  Question.belongsToMany(models.Tag, {
-    through: "QuestionTags",
-    as: "tags",
-    foreignKey: "questionId",
-  });
-};
 
 module.exports = Question;

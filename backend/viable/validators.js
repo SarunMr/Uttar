@@ -69,44 +69,9 @@ const tagValidationRules = [
       return true;
     }),
 ];
-const createQuestionRules = [
-  body("title")
-    .trim()
-    .notEmpty()
-    .withMessage("Title is required")
-    .isLength({ min: 10, max: 150 })
-    .withMessage("Title must be between 10 and 150 characters"),
-
-  body("description")
-    .trim()
-    .notEmpty()
-    .withMessage("Description is required")
-    .isLength({ max: 255 })
-    .withMessage("Description max length is 255"),
-
-  body("content")
-    .trim()
-    .notEmpty()
-    .withMessage("Content is required")
-    .isLength({ min: 20 })
-    .withMessage("Content must be at least 20 characters"),
-
-  body("images")
-    .optional()
-    .isArray()
-    .withMessage("Images must be an array of URLs"),
-
-  body("tagNames")
-    .isArray({ min: 1, max: 5 })
-    .withMessage("Please provide 1 to 5 tags")
-    .custom(
-      (tags) => Array.isArray(tags) && tags.every((t) => typeof t === "string"),
-    ),
-];
 
 module.exports = {
   registerValidation,
   loginValidation,
   tagValidationRules,
-  createQuestionRules,
 };
