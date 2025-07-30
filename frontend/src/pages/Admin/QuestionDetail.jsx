@@ -29,6 +29,7 @@ import {
   Bookmark,
   BookmarkCheck,
   Plus,
+  AlertCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,15 +37,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import axios from "axios";
 
 export default function QuestionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Question and comments state
   const [question, setQuestion] = useState(null);
-  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Like states
+  const [isQuestionLiked, setIsQuestionLiked] = useState(false);
+  const [questionLikes, setQuestionLikes] = useState(0);
+  const [commentLikes, setCommentLikes] = useState({});
+
+  // Bookmark state
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   // Edit comment states
@@ -53,13 +63,12 @@ export default function QuestionDetail() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
 
-  // Current user (mock - replace with your auth context)
-  const currentUser = {
-    id: 999,
-    username: "admin",
-    firstName: "Admin",
-    lastName: "User",
-  };
+  // Loading states
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState({});
+
+  // API Base URL
+  const API_BASE_URL = "http://localhost:5000";
 
   useEffect(() => {
     loadQuestionDetail();
@@ -67,140 +76,172 @@ export default function QuestionDetail() {
 
   const loadQuestionDetail = async () => {
     setLoading(true);
-    // Mock data - replace with API call
-    setTimeout(() => {
-      setQuestion({
-        id: parseInt(id),
-        title: "How to optimize React performance with large datasets?",
-        content: `I'm working with a React application that needs to display thousands of items in a list. The performance is getting really slow when users scroll through the data.
-
-I've tried using React.memo and useMemo, but I'm still experiencing lag. Here's what I'm currently doing:
-
-\`\`\`javascript
-const ItemList = ({ items }) => {
-  return (
-    <div>
-      {items.map(item => (
-        <ItemCard key={item.id} item={item} />
-      ))}
-    </div>
-  );
-};
-\`\`\`
-
-What are the best practices for handling such large datasets? Should I implement virtualization? Are there any other techniques I should consider?`,
-        description: "Looking for best practices to handle large datasets in React applications.",
-        author: {
-          id: 1,
-          username: "johndoe",
-          firstName: "John",
-          lastName: "Doe",
+    setError("");
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/questions/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        images: [
-          "/api/images/react-performance.png",
-          "/api/images/performance-chart.png",
-        ],
-        tags: ["admin", "react", "javascript", "performance"],
-        likes: 15,
-        views: 234,
-        comments: 8,
-        createdAt: "2024-01-15T10:30:00Z",
-        updatedAt: "2024-01-15T10:30:00Z",
       });
 
-      setComments([
-        {
-          id: 1,
-          content: "You should definitely look into React Window or React Virtualized for handling large lists. They only render visible items.",
-          author: {
-            id: 2,
-            username: "reactexpert",
-            firstName: "Sarah",
-            lastName: "Johnson",
-          },
-          createdAt: "2024-01-15T11:15:00Z",
-          updatedAt: null,
-          likes: 5,
-        },
-        {
-          id: 2,
-          content: "Another approach is to implement pagination or infinite scrolling to avoid loading all data at once.",
-          author: {
-            id: 3,
-            username: "performancedev",
-            firstName: "Mike",
-            lastName: "Chen",
-          },
-          createdAt: "2024-01-15T12:45:00Z",
-          updatedAt: "2024-01-15T13:30:00Z",
-          likes: 3,
-        },
-      ]);
+      if (response.data.success) {
+        const questionData = response.data.data;
+        setQuestion(questionData);
+        setIsQuestionLiked(questionData.isLiked || false);
+        setQuestionLikes(questionData.likes || 0);
+        setIsBookmarked(questionData.isBookmarked || false);
 
-      // Check if question is bookmarked (mock - replace with API call)
-      setIsBookmarked(false); // This would come from your API/localStorage
-      setLoading(false);
-    }, 1000);
-  };
-
-  const handleBookmark = async () => {
-    try {
-      // API call to bookmark/unbookmark question
-      const newBookmarkStatus = !isBookmarked;
-      
-      // Mock API call - replace with actual API
-      console.log(newBookmarkStatus ? 'Bookmarking question...' : 'Removing bookmark...');
-      
-      setIsBookmarked(newBookmarkStatus);
-      
-      // You could also show a toast notification here
-      const message = newBookmarkStatus ? 'Question bookmarked!' : 'Bookmark removed';
-      console.log(message);
-      
+        // Set comment likes state
+        const commentLikesMap = {};
+        questionData.questionComments?.forEach(comment => {
+          commentLikesMap[comment.id] = comment.isLiked || false;
+        });
+        setCommentLikes(commentLikesMap);
+      } else {
+        setError(response.data.message || "Failed to load question");
+      }
     } catch (error) {
-      console.error('Error updating bookmark:', error);
+      console.error("Error loading question:", error);
+      setError(
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to load question"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+  // Toggle question like
+  const handleToggleQuestionLike = async () => {
+    if (likeLoading.question) return;
 
-    const comment = {
-      id: Date.now(),
-      content: newComment,
-      author: currentUser,
-      createdAt: new Date().toISOString(),
-      updatedAt: null,
-      likes: 0,
-    };
+    setLikeLoading(prev => ({ ...prev, question: true }));
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/questions/${id}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    setComments((prev) => [...prev, comment]);
-    setNewComment("");
+      if (response.data.success) {
+        setIsQuestionLiked(response.data.isLiked);
+        setQuestionLikes(response.data.likes);
+      }
+    } catch (error) {
+      console.error("Error toggling question like:", error);
+    } finally {
+      setLikeLoading(prev => ({ ...prev, question: false }));
+    }
   };
 
+  // Toggle bookmark
+  const handleBookmark = async () => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/questions/${id}/bookmark`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setIsBookmarked(response.data.isBookmarked);
+        console.log(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error updating bookmark:", error);
+    }
+  };
+
+  // Add comment
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || commentLoading) return;
+
+    setCommentLoading(true);
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/comments/question/${id}`,
+        { content: newComment.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const newCommentData = response.data.data;
+        
+        // Update question with new comment
+        setQuestion(prev => ({
+          ...prev,
+          questionComments: [...(prev.questionComments || []), newCommentData],
+          comments: (prev.comments || 0) + 1
+        }));
+        
+        // Set like state for new comment
+        setCommentLikes(prev => ({
+          ...prev,
+          [newCommentData.id]: false
+        }));
+        
+        setNewComment("");
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  // Edit comment
   const handleEditComment = (comment) => {
     setEditingCommentId(comment.id);
     setEditCommentContent(comment.content);
   };
 
-  const handleSaveEdit = () => {
-    if (!editCommentContent.trim()) return;
+  const handleSaveEdit = async () => {
+    if (!editCommentContent.trim() || commentLoading) return;
 
-    setComments((prev) =>
-      prev.map((comment) =>
-        comment.id === editingCommentId
-          ? {
-              ...comment,
-              content: editCommentContent,
-              updatedAt: new Date().toISOString(),
-            }
-          : comment
-      )
-    );
+    setCommentLoading(true);
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/api/comments/${editingCommentId}`,
+        { content: editCommentContent.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    setEditingCommentId(null);
-    setEditCommentContent("");
+      if (response.data.success) {
+        const updatedComment = response.data.data;
+        
+        setQuestion(prev => ({
+          ...prev,
+          questionComments: prev.questionComments.map(comment =>
+            comment.id === editingCommentId ? updatedComment : comment
+          )
+        }));
+
+        setEditingCommentId(null);
+        setEditCommentContent("");
+      }
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    } finally {
+      setCommentLoading(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -208,15 +249,88 @@ What are the best practices for handling such large datasets? Should I implement
     setEditCommentContent("");
   };
 
+  // Delete comment
   const handleDeleteComment = (comment) => {
     setCommentToDelete(comment);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    setComments((prev) => prev.filter((comment) => comment.id !== commentToDelete.id));
-    setDeleteDialogOpen(false);
-    setCommentToDelete(null);
+  const confirmDelete = async () => {
+    if (!commentToDelete || commentLoading) return;
+
+    setCommentLoading(true);
+    try {
+      const response = await axios.delete(
+        `${API_BASE_URL}/api/comments/${commentToDelete.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setQuestion(prev => ({
+          ...prev,
+          questionComments: prev.questionComments.filter(
+            comment => comment.id !== commentToDelete.id
+          ),
+          comments: (prev.comments || 0) - 1
+        }));
+
+        // Remove from comment likes state
+        setCommentLikes(prev => {
+          const newState = { ...prev };
+          delete newState[commentToDelete.id];
+          return newState;
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    } finally {
+      setCommentLoading(false);
+      setDeleteDialogOpen(false);
+      setCommentToDelete(null);
+    }
+  };
+
+  // Toggle comment like
+  const handleToggleCommentLike = async (commentId) => {
+    if (likeLoading[commentId]) return;
+
+    setLikeLoading(prev => ({ ...prev, [commentId]: true }));
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/comments/${commentId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setCommentLikes(prev => ({
+          ...prev,
+          [commentId]: response.data.isLiked
+        }));
+
+        // Update comment likes count in question
+        setQuestion(prev => ({
+          ...prev,
+          questionComments: prev.questionComments.map(comment =>
+            comment.id === commentId 
+              ? { ...comment, likes: response.data.likes }
+              : comment
+          )
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling comment like:", error);
+    } finally {
+      setLikeLoading(prev => ({ ...prev, [commentId]: false }));
+    }
   };
 
   const formatDate = (dateString) => {
@@ -230,13 +344,30 @@ What are the best practices for handling such large datasets? Should I implement
   };
 
   const canEditComment = (comment) => {
-    return comment.author.id === currentUser.id;
+    // Get current user ID from token or context
+    const currentUserId = JSON.parse(localStorage.getItem("user") || "{}")?.id;
+    return comment.author.id === currentUserId;
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-gray-600">Loading question...</p>
+        <div className="flex items-center gap-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-600"></div>
+          <p className="text-gray-600">Loading question...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+        <p className="text-gray-600 mb-4">{error}</p>
+        <Button onClick={() => navigate("/admin/questions")} className="mt-4">
+          Back to Questions
+        </Button>
       </div>
     );
   }
@@ -256,7 +387,6 @@ What are the best practices for handling such large datasets? Should I implement
     <div className="max-w-4xl mx-auto">
       {/* Header with Navigation and Actions */}
       <div className="flex items-center justify-between mb-6">
-        {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate("/admin/questions")}
@@ -265,9 +395,7 @@ What are the best practices for handling such large datasets? Should I implement
           Back to Questions
         </Button>
 
-        {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          {/* Bookmark Button */}
           <Button
             variant="outline"
             onClick={handleBookmark}
@@ -286,7 +414,6 @@ What are the best practices for handling such large datasets? Should I implement
             {isBookmarked ? "Bookmarked" : "Bookmark"}
           </Button>
 
-          {/* Ask Question Button */}
           <Button 
             onClick={() => navigate("/admin/questions/ask")}
             className="bg-cyan-600 hover:bg-cyan-700 text-white"
@@ -342,19 +469,31 @@ What are the best practices for handling such large datasets? Should I implement
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats with Like Button */}
           <div className="flex items-center gap-6 mt-3">
-            <div className="flex items-center gap-1 text-gray-600">
-              <Heart className="h-5 w-5" />
-              <span>{question.likes} likes</span>
-            </div>
+            <button
+              onClick={handleToggleQuestionLike}
+              disabled={likeLoading.question}
+              className={cn(
+                "flex items-center gap-1 transition-colors",
+                isQuestionLiked 
+                  ? "text-red-600 hover:text-red-700" 
+                  : "text-gray-600 hover:text-red-600"
+              )}
+            >
+              <Heart className={cn(
+                "h-5 w-5",
+                isQuestionLiked && "fill-current"
+              )} />
+              <span>{questionLikes} likes</span>
+            </button>
             <div className="flex items-center gap-1 text-gray-600">
               <Eye className="h-5 w-5" />
               <span>{question.views} views</span>
             </div>
             <div className="flex items-center gap-1 text-gray-600">
               <MessageSquare className="h-5 w-5" />
-              <span>{question.comments} comments</span>
+              <span>{question.questionComments?.length || 0} comments</span>
             </div>
             {isBookmarked && (
               <div className="flex items-center gap-1 text-yellow-600">
@@ -379,18 +518,32 @@ What are the best practices for handling such large datasets? Should I implement
           </div>
 
           {/* Images */}
-          {question.images.length > 0 && (
+          {question.images && question.images.length > 0 && (
             <div className="space-y-2">
               <h3 className="font-semibold text-gray-800">Attachments</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {question.images.map((image, index) => (
                   <div
                     key={index}
-                    className="border rounded-lg p-4 bg-gray-50 flex items-center justify-center h-32"
+                    className="border rounded-lg overflow-hidden bg-gray-50"
                   >
-                    <div className="text-center text-gray-500">
-                      <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                      <p className="text-xs">Image {index + 1}</p>
+                    <img
+                      src={`${API_BASE_URL}${image}`}
+                      alt={`Attachment ${index + 1}`}
+                      className="w-full h-32 object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                    <div
+                      className="w-full h-32 flex items-center justify-center text-gray-500"
+                      style={{ display: "none" }}
+                    >
+                      <div className="text-center">
+                        <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                        <p className="text-xs">Image {index + 1}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -405,7 +558,7 @@ What are the best practices for handling such large datasets? Should I implement
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Comments ({comments.length})
+            Comments ({question.questionComments?.length || 0})
           </CardTitle>
         </CardHeader>
 
@@ -418,25 +571,26 @@ What are the best practices for handling such large datasets? Should I implement
               onChange={(e) => setNewComment(e.target.value)}
               rows={3}
               className="border-cyan-200 focus:border-cyan-400"
+              disabled={commentLoading}
             />
             <Button
               type="submit"
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() || commentLoading}
               className="bg-cyan-600 hover:bg-cyan-700"
             >
               <Send className="h-4 w-4 mr-2" />
-              Post Comment
+              {commentLoading ? "Posting..." : "Post Comment"}
             </Button>
           </form>
 
           {/* Comments List */}
           <div className="space-y-4">
-            {comments.length === 0 ? (
+            {!question.questionComments || question.questionComments.length === 0 ? (
               <p className="text-gray-500 text-center py-8">
                 No comments yet. Be the first to comment!
               </p>
             ) : (
-              comments.map((comment) => (
+              question.questionComments.map((comment) => (
                 <div
                   key={comment.id}
                   className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
@@ -462,7 +616,7 @@ What are the best practices for handling such large datasets? Should I implement
                           <span className="text-gray-500">
                             {formatDate(comment.createdAt)}
                           </span>
-                          {comment.updatedAt && (
+                          {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
                             <>
                               <span className="text-gray-400">•</span>
                               <span className="text-xs text-gray-500 italic">
@@ -484,6 +638,7 @@ What are the best practices for handling such large datasets? Should I implement
                               <DropdownMenuItem
                                 onClick={() => handleEditComment(comment)}
                                 className="flex items-center gap-2"
+                                disabled={commentLoading}
                               >
                                 <Edit className="h-4 w-4" />
                                 Edit
@@ -491,6 +646,7 @@ What are the best practices for handling such large datasets? Should I implement
                               <DropdownMenuItem
                                 onClick={() => handleDeleteComment(comment)}
                                 className="flex items-center gap-2 text-red-600"
+                                disabled={commentLoading}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 Delete
@@ -508,19 +664,22 @@ What are the best practices for handling such large datasets? Should I implement
                             onChange={(e) => setEditCommentContent(e.target.value)}
                             rows={3}
                             className="border-cyan-200 focus:border-cyan-400"
+                            disabled={commentLoading}
                           />
                           <div className="flex gap-2">
                             <Button
                               size="sm"
                               onClick={handleSaveEdit}
                               className="bg-cyan-600 hover:bg-cyan-700"
+                              disabled={commentLoading || !editCommentContent.trim()}
                             >
-                              Save
+                              {commentLoading ? "Saving..." : "Save"}
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={handleCancelEdit}
+                              disabled={commentLoading}
                             >
                               Cancel
                             </Button>
@@ -533,8 +692,20 @@ What are the best practices for handling such large datasets? Should I implement
                       )}
 
                       <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-cyan-600">
-                          <Heart className="h-4 w-4" />
+                        <button 
+                          onClick={() => handleToggleCommentLike(comment.id)}
+                          disabled={likeLoading[comment.id]}
+                          className={cn(
+                            "flex items-center gap-1 text-sm transition-colors",
+                            commentLikes[comment.id]
+                              ? "text-red-600 hover:text-red-700"
+                              : "text-gray-500 hover:text-red-600"
+                          )}
+                        >
+                          <Heart className={cn(
+                            "h-4 w-4",
+                            commentLikes[comment.id] && "fill-current"
+                          )} />
                           <span>{comment.likes}</span>
                         </button>
                       </div>
@@ -560,14 +731,16 @@ What are the best practices for handling such large datasets? Should I implement
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
+              disabled={commentLoading}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDelete}
+              disabled={commentLoading}
             >
-              Delete
+              {commentLoading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
