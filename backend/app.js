@@ -11,6 +11,7 @@ const { testConnection } = require("./viable/db");
 const authRoutes = require("./routes/auth");
 const tagRoutes = require("./routes/tags");
 const questionRoutes = require("./routes/question.js");
+const commentRoutes = require("./routes/comments.js")
 require("./models/associations");
 
 // Create Express app
@@ -50,6 +51,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/questions", questionRoutes);
+app.use("/api/comments", commentRoutes);
 
 // 404 handler
 app.use((req, res) => {
