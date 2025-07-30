@@ -12,7 +12,7 @@ const authRoutes = require("./routes/auth");
 const tagRoutes = require("./routes/tags");
 const questionRoutes = require("./routes/question.js");
 const commentRoutes = require("./routes/comments.js")
-require("./models/associations");
+require("./models/associations.js");
 
 // Create Express app
 const app = express();

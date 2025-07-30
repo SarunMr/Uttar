@@ -4,10 +4,10 @@ const Question = require("../models/Question");
 const User = require("../models/User");
 
 // Create comment
-exports.createComment = async (req, res) => {
+async function createComment(req, res) {
   try {
     const { content } = req.body;
-    const questionId = req.params.questionId; // Now from route params
+    const questionId = req.params.questionId;
     const userId = req.user.id;
 
     // Check if question exists
@@ -43,17 +43,17 @@ exports.createComment = async (req, res) => {
       success: true,
       data: {
         ...commentWithAuthor.toJSON(),
-        isLiked: false, // New comment, user hasn't liked it yet
+        isLiked: false,
       },
     });
   } catch (error) {
     console.error("Error creating comment:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-};
+}
 
 // Update comment
-exports.updateComment = async (req, res) => {
+async function updateComment(req, res) {
   try {
     const commentId = req.params.id;
     const { content } = req.body;
@@ -77,15 +77,12 @@ exports.updateComment = async (req, res) => {
 
     // Check if user owns the comment
     if (comment.authorId !== userId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to edit this comment",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to edit this comment",
+      });
     }
 
-    // Update comment
     await comment.update({ content });
 
     // Check if user liked this comment
@@ -104,10 +101,10 @@ exports.updateComment = async (req, res) => {
     console.error("Error updating comment:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-};
+}
 
 // Delete comment
-exports.deleteComment = async (req, res) => {
+async function deleteComment(req, res) {
   try {
     const commentId = req.params.id;
     const userId = req.user.id;
@@ -119,23 +116,17 @@ exports.deleteComment = async (req, res) => {
         .json({ success: false, message: "Comment not found" });
     }
 
-    // Check if user owns the comment
     if (comment.authorId !== userId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to delete this comment",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this comment",
+      });
     }
 
-    // Get question to update comment count
     const question = await Question.findByPk(comment.questionId);
 
-    // Delete comment (this will also delete associated likes due to cascade)
     await comment.destroy();
 
-    // Update question comments count
     if (question) {
       await question.decrement("commentsCount");
     }
@@ -145,15 +136,14 @@ exports.deleteComment = async (req, res) => {
     console.error("Error deleting comment:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-};
+}
 
 // Toggle comment like
-exports.toggleCommentLike = async (req, res) => {
+async function toggleCommentLike(req, res) {
   try {
     const commentId = req.params.id;
     const userId = req.user.id;
 
-    // Check if comment exists
     const comment = await Comment.findByPk(commentId);
     if (!comment) {
       return res
@@ -161,13 +151,11 @@ exports.toggleCommentLike = async (req, res) => {
         .json({ success: false, message: "Comment not found" });
     }
 
-    // Check if user already liked
     const existingLike = await CommentLike.findOne({
       where: { commentId, userId },
     });
 
     if (existingLike) {
-      // Remove like
       await existingLike.destroy();
       await comment.decrement("likes");
 
@@ -178,7 +166,6 @@ exports.toggleCommentLike = async (req, res) => {
         likes: comment.likes - 1,
       });
     } else {
-      // Add like
       await CommentLike.create({ commentId, userId });
       await comment.increment("likes");
 
@@ -193,7 +180,7 @@ exports.toggleCommentLike = async (req, res) => {
     console.error("Error toggling comment like:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
-};
+}
 
 module.exports = {
   createComment,
