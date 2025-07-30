@@ -37,6 +37,11 @@ const Question = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    tags: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: true,
+      defaultValue: [],
+    },
     authorId: {
       type: DataTypes.INTEGER,
       allowNull: false,
