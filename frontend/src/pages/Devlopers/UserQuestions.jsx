@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,16 +62,16 @@ export default function UserQuestions() {
     return questions.map((question) => {
       // Ensure tags is always an array
       let tags = question.tags || [];
-      
+
       // Handle different tag formats
-      if (typeof tags === 'string') {
+      if (typeof tags === "string") {
         try {
           tags = JSON.parse(tags);
         } catch (e) {
           tags = [tags];
         }
       }
-      
+
       if (!Array.isArray(tags)) {
         tags = [];
       }
@@ -109,30 +108,46 @@ export default function UserQuestions() {
     // Apply search filter if searchTerm exists
     if (searchTerm && searchTerm.trim().length > 0) {
       const searchLower = searchTerm.toLowerCase().trim();
-      
+
       filtered = transformedQuestions.filter((q) => {
         // Search in title
-        const titleMatch = q.title && q.title.toLowerCase().includes(searchLower);
-        
-        // Search in content  
-        const contentMatch = q.content && q.content.toLowerCase().includes(searchLower);
-        
+        const titleMatch =
+          q.title && q.title.toLowerCase().includes(searchLower);
+
+        // Search in content
+        const contentMatch =
+          q.content && q.content.toLowerCase().includes(searchLower);
+
         // Search in description
-        const descriptionMatch = q.description && q.description.toLowerCase().includes(searchLower);
-        
+        const descriptionMatch =
+          q.description && q.description.toLowerCase().includes(searchLower);
+
         // Search in ALL tags (including admin tags)
-        const tagsMatch = Array.isArray(q.tags) && q.tags.length > 0 
-          ? q.tags.some(tag => 
-              typeof tag === 'string' && tag.toLowerCase().includes(searchLower)
-            )
-          : false;
+        const tagsMatch =
+          Array.isArray(q.tags) && q.tags.length > 0
+            ? q.tags.some(
+                (tag) =>
+                  typeof tag === "string" &&
+                  tag.toLowerCase().includes(searchLower),
+              )
+            : false;
 
         // Search in author name
-        const authorMatch = (q.author?.firstName && q.author.firstName.toLowerCase().includes(searchLower)) ||
-                           (q.author?.lastName && q.author.lastName.toLowerCase().includes(searchLower)) ||
-                           (q.author?.username && q.author.username.toLowerCase().includes(searchLower));
+        const authorMatch =
+          (q.author?.firstName &&
+            q.author.firstName.toLowerCase().includes(searchLower)) ||
+          (q.author?.lastName &&
+            q.author.lastName.toLowerCase().includes(searchLower)) ||
+          (q.author?.username &&
+            q.author.username.toLowerCase().includes(searchLower));
 
-        return titleMatch || contentMatch || descriptionMatch || tagsMatch || authorMatch;
+        return (
+          titleMatch ||
+          contentMatch ||
+          descriptionMatch ||
+          tagsMatch ||
+          authorMatch
+        );
       });
     }
 
@@ -154,8 +169,10 @@ export default function UserQuestions() {
         return [...filtered].sort((a, b) => b.views - a.views);
       case "my_questions":
         // Filter to show only current user's questions
-        const currentUserId = JSON.parse(localStorage.getItem("user") || "{}")?.id;
-        return filtered.filter(q => q.author.id === currentUserId);
+        const currentUserId = JSON.parse(
+          localStorage.getItem("user") || "{}",
+        )?.id;
+        return filtered.filter((q) => q.author.id === currentUserId);
       case "all":
       default:
         return filtered;
@@ -192,7 +209,7 @@ export default function UserQuestions() {
       pages.push(
         <button
           key="prev"
-          className="px-3 py-1 rounded-md border border-blue-300 text-blue-700 hover:bg-blue-100"
+          className="px-3 py-1 rounded-md border border-cyan-300 text-cyan-700 hover:bg-cyan-100"
           onClick={() => setCurrentPage(currentPage - 1)}
         >
           Previous
@@ -208,8 +225,8 @@ export default function UserQuestions() {
           className={cn(
             "w-8 h-8 flex items-center justify-center rounded-md border font-medium",
             i === currentPage
-              ? "bg-blue-600 text-white border-blue-600"
-              : "border-blue-300 text-blue-700 hover:bg-blue-100",
+              ? "bg-cyan-600 text-white border-cyan-600"
+              : "border-cyan-300 text-cyan-700 hover:bg-cyan-100",
           )}
           onClick={() => setCurrentPage(i)}
         >
@@ -223,7 +240,7 @@ export default function UserQuestions() {
       pages.push(
         <button
           key="next"
-          className="px-3 py-1 rounded-md border border-blue-300 text-blue-700 hover:bg-blue-100"
+          className="px-3 py-1 rounded-md border border-cyan-300 text-cyan-700 hover:bg-cyan-100"
           onClick={() => setCurrentPage(currentPage + 1)}
         >
           Next
@@ -275,7 +292,7 @@ export default function UserQuestions() {
   // Navigation handlers
   const handleQuestionClick = useCallback(
     (questionId) => {
-      navigate(`/questions/${questionId}`); // User route
+      navigate(`/user/questions/${questionId}`); // User route
     },
     [navigate],
   );
@@ -307,13 +324,15 @@ export default function UserQuestions() {
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-blue-800 mb-2">
+          <h1 className="text-3xl font-bold text-cyan-800 mb-2">
             Community Questions
           </h1>
           <p className="text-gray-600">
             Explore questions from the community and share your knowledge.
             {questions.length > 0 && (
-              <span className="ml-2">({questions.length} questions available)</span>
+              <span className="ml-2">
+                ({questions.length} questions available)
+              </span>
             )}
           </p>
         </div>
@@ -323,14 +342,14 @@ export default function UserQuestions() {
             variant="outline"
             onClick={handleRefresh}
             disabled={loading}
-            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+            className="border-cyan-200 text-cyan-700 hover:bg-cyan-50"
           >
             {loading ? "Loading..." : "Refresh"}
           </Button>
 
           <Button
             onClick={handleAskQuestionClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-cyan-600 hover:bg-cyan-700 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             Ask Question
@@ -370,7 +389,7 @@ export default function UserQuestions() {
               placeholder="Search questions, content, or tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10 border-blue-200 focus:border-blue-400"
+              className="pr-10 border-cyan-200 focus:border-cyan-400"
             />
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
@@ -378,7 +397,7 @@ export default function UserQuestions() {
 
         <div className="w-48">
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="border-blue-200">
+            <SelectTrigger className="border-cyan-200">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -400,7 +419,7 @@ export default function UserQuestions() {
         {loading ? (
           <div className="flex justify-center items-center h-40">
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-600"></div>
               <p className="text-gray-600">Loading questions...</p>
             </div>
           </div>
@@ -429,7 +448,7 @@ export default function UserQuestions() {
             {!searchTerm && (
               <Button
                 onClick={handleAskQuestionClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Ask Question
@@ -441,11 +460,11 @@ export default function UserQuestions() {
             {paginationData.paginatedQuestions.map((question) => (
               <Card
                 key={question.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-blue-100 hover:border-blue-300 group"
+                className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-cyan-100 hover:border-cyan-300 group"
                 onClick={() => handleQuestionClick(question.id)}
               >
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-800 transition-colors">
+                  <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-cyan-800 transition-colors">
                     {question.title}
                   </CardTitle>
                   <p className="text-sm text-gray-600 line-clamp-2">
@@ -455,37 +474,39 @@ export default function UserQuestions() {
 
                 <CardContent className="space-y-4">
                   {/* FIXED: Tags Section - Shows ALL tags including admin tags */}
-                  {question.tags && Array.isArray(question.tags) && question.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {question.tags.slice(0, 4).map((tagName, index) => (
-                        <Badge
-                          key={`${tagName}-${index}`}
-                          variant="secondary"
-                          className={cn(
-                            "text-xs font-medium flex items-center gap-1",
-                            tagName === "admin"
-                              ? "bg-cyan-100 text-cyan-800 border border-cyan-200" // Admin tag styling
-                              : tagName === "request"
-                              ? "bg-orange-100 text-orange-800 border border-orange-200" // Request tag styling
-                              : tagName === "unknown"
-                              ? "bg-gray-100 text-gray-600 border border-gray-200" // Unknown tag styling
-                              : "bg-blue-100 text-blue-800 border border-blue-200", // Regular tag styling
-                          )}
-                        >
-                          <Tag className="h-2.5 w-2.5" />
-                          {tagName}
-                        </Badge>
-                      ))}
-                      {question.tags.length > 4 && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs text-gray-500"
-                        >
-                          +{question.tags.length - 4} more
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                  {question.tags &&
+                    Array.isArray(question.tags) &&
+                    question.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {question.tags.slice(0, 4).map((tagName, index) => (
+                          <Badge
+                            key={`${tagName}-${index}`}
+                            variant="secondary"
+                            className={cn(
+                              "text-xs font-medium flex items-center gap-1",
+                              tagName === "admin"
+                                ? "bg-cyan-100 text-cyan-800 border border-cyan-200" // Admin tag styling
+                                : tagName === "request"
+                                  ? "bg-orange-100 text-orange-800 border border-orange-200" // Request tag styling
+                                  : tagName === "unknown"
+                                    ? "bg-gray-100 text-gray-600 border border-gray-200" // Unknown tag styling
+                                    : "bg-gray-100 text-gray-800 border border-gray-200", // Regular tag styling
+                            )}
+                          >
+                            <Tag className="h-2.5 w-2.5" />
+                            {tagName}
+                          </Badge>
+                        ))}
+                        {question.tags.length > 4 && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs text-gray-500"
+                          >
+                            +{question.tags.length - 4} more
+                          </Badge>
+                        )}
+                      </div>
+                    )}
 
                   {/* Images indicator */}
                   {question.images && question.images.length > 0 && (

@@ -37,7 +37,7 @@ import {
   AlertCircle,
   Tag,
   Check,
-Search,
+  Search,
   ChevronsUpDown,
   Eye,
   Plus,
@@ -98,7 +98,8 @@ export default function UserAskQuestion() {
       {
         id: 11,
         name: "unknown",
-        description: "Tag for unclassified questions when you can't find a suitable category",
+        description:
+          "Tag for unclassified questions when you can't find a suitable category",
         isSpecial: true,
       },
       {
@@ -199,7 +200,7 @@ export default function UserAskQuestion() {
     setTagsLoading(true);
     try {
       console.log("Loading user tags from:", `${API_BASE_URL}/api/tags/user`);
-      
+
       const token = localStorage.getItem("token");
       if (!token) {
         console.warn("No authentication token found, using fallback tags");
@@ -229,9 +230,9 @@ export default function UserAskQuestion() {
         message: error.message,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
       });
-      
+
       // Use fallback tags on any error
       console.log("Using fallback tags due to API error");
       setFallbackTags();
@@ -254,10 +255,10 @@ export default function UserAskQuestion() {
     if (files.length === 0) return;
 
     // Validate file types and sizes
-    const validFiles = files.filter(file => {
-      const isValidType = file.type.startsWith('image/');
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/");
       const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
-      
+
       if (!isValidType) {
         console.warn(`File ${file.name} is not a valid image type`);
         return false;
@@ -270,16 +271,16 @@ export default function UserAskQuestion() {
     });
 
     if (validFiles.length === 0) {
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        images: "Please select valid image files under 5MB each"
+        images: "Please select valid image files under 5MB each",
       }));
       return;
     }
 
     // Clear any previous image errors
     if (formErrors.images) {
-      setFormErrors(prev => ({ ...prev, images: "" }));
+      setFormErrors((prev) => ({ ...prev, images: "" }));
     }
 
     // Add files to selectedFiles array for actual upload
@@ -372,7 +373,7 @@ export default function UserAskQuestion() {
 
   // Filter tags for browser
   const filteredBrowserTags = availableTags.filter((tag) =>
-    tag.name.toLowerCase().includes(tagBrowserSearch.toLowerCase())
+    tag.name.toLowerCase().includes(tagBrowserSearch.toLowerCase()),
   );
 
   // Pagination for tag browser
@@ -415,7 +416,8 @@ export default function UserAskQuestion() {
 
     // Tags validation
     if (questionForm.tags.length === 0) {
-      errors.tags = "At least one tag is required. Use 'unknown' if you're unsure.";
+      errors.tags =
+        "At least one tag is required. Use 'unknown' if you're unsure.";
     } else if (questionForm.tags.length > 5) {
       errors.tags = "Maximum 5 tags allowed";
     }
@@ -477,10 +479,10 @@ export default function UserAskQuestion() {
 
       if (response.data.success) {
         console.log("Question created successfully:", response.data.data);
-        
+
         // Clean up object URLs to prevent memory leaks
-        questionForm.images.forEach(url => URL.revokeObjectURL(url));
-        
+        questionForm.images.forEach((url) => URL.revokeObjectURL(url));
+
         navigate("/user/questions", {
           state: { message: "Question posted successfully!" },
         });
@@ -504,8 +506,8 @@ export default function UserAskQuestion() {
   // Clean up object URLs on component unmount
   useEffect(() => {
     return () => {
-      questionForm.images.forEach(url => {
-        if (url.startsWith('blob:')) {
+      questionForm.images.forEach((url) => {
+        if (url.startsWith("blob:")) {
           URL.revokeObjectURL(url);
         }
       });
@@ -522,12 +524,12 @@ export default function UserAskQuestion() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate("/questions")}>
+        <Button variant="ghost" onClick={() => navigate("/user/questions")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Questions
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-blue-800">Ask a Question</h1>
+          <h1 className="text-3xl font-bold text-cyan-800">Ask a Question</h1>
           <p className="text-gray-600">Get help from the community</p>
         </div>
       </div>
@@ -557,7 +559,7 @@ export default function UserAskQuestion() {
                     value={questionForm.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     className={cn(
-                      "border-blue-200 focus:border-blue-400",
+                      "border-cyan-200 focus:border-cyan-400",
                       formErrors.title && "border-red-500",
                     )}
                     maxLength={150}
@@ -589,7 +591,7 @@ export default function UserAskQuestion() {
                       handleInputChange("description", e.target.value)
                     }
                     className={cn(
-                      "border-blue-200 focus:border-blue-400",
+                      "border-cyan-200 focus:border-cyan-400",
                       formErrors.description && "border-red-500",
                     )}
                     maxLength={200}
@@ -615,7 +617,10 @@ export default function UserAskQuestion() {
                   <div className="flex flex-wrap gap-2 mb-3">
                     {questionForm.tags.map((tagName) => {
                       const tag = availableTags.find((t) => t.name === tagName);
-                      const isSpecial = tag?.isSpecial || tagName === "request" || tagName === "unknown";
+                      const isSpecial =
+                        tag?.isSpecial ||
+                        tagName === "request" ||
+                        tagName === "unknown";
                       return (
                         <Badge
                           key={tagName}
@@ -625,18 +630,16 @@ export default function UserAskQuestion() {
                             tagName === "request"
                               ? "bg-orange-100 text-orange-800 border border-orange-200"
                               : tagName === "unknown"
-                              ? "bg-gray-100 text-gray-600 border border-gray-200"
-                              : isSpecial
-                              ? "bg-purple-100 text-purple-800 border border-purple-200"
-                              : "bg-blue-100 text-blue-800 hover:bg-blue-200",
+                                ? "bg-gray-100 text-gray-600 border border-gray-200"
+                                : isSpecial
+                                  ? "bg-purple-100 text-purple-800 border border-purple-200"
+                                  : "bg-cyan-100 text-cyan-800 hover:bg-cyan-200",
                           )}
                         >
                           <Tag className="h-3 w-3" />
                           {tagName}
                           {isSpecial && (
-                            <span className="text-xs opacity-75">
-                              SPECIAL
-                            </span>
+                            <span className="text-xs opacity-75">SPECIAL</span>
                           )}
                           <button
                             type="button"
@@ -663,7 +666,7 @@ export default function UserAskQuestion() {
                             variant="outline"
                             role="combobox"
                             aria-expanded={tagSelectorOpen}
-                            className="flex-1 justify-between border-blue-200 hover:border-blue-300"
+                            className="flex-1 justify-between border-cyan-200 hover:border-cyan-300"
                             disabled={tagsLoading}
                           >
                             <span className="text-gray-500">
@@ -688,7 +691,8 @@ export default function UserAskQuestion() {
                                     No tags found matching "{tagSearch}"
                                   </p>
                                   <p className="text-xs text-gray-400 mb-3">
-                                    Can't find the right tag? Use "unknown" for unclassified questions.
+                                    Can't find the right tag? Use "unknown" for
+                                    unclassified questions.
                                   </p>
                                   <Button
                                     variant="outline"
@@ -697,7 +701,7 @@ export default function UserAskQuestion() {
                                       addTag("unknown");
                                       setTagSelectorOpen(false);
                                     }}
-                                    className="text-blue-600"
+                                    className="text-cyan-600"
                                   >
                                     Add "unknown" tag
                                   </Button>
@@ -743,7 +747,7 @@ export default function UserAskQuestion() {
                       type="button"
                       variant="outline"
                       onClick={() => setTagBrowserOpen(true)}
-                      className="border-blue-200 hover:border-blue-300 text-blue-700"
+                      className="border-cyan-200 hover:border-cyan-300 text-cyan-700"
                       disabled={tagsLoading}
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -759,7 +763,8 @@ export default function UserAskQuestion() {
                   )}
 
                   <p className="text-xs text-gray-500">
-                    {questionForm.tags.length}/5 tags selected • Use "unknown" if you can't find a suitable category
+                    {questionForm.tags.length}/5 tags selected • Use "unknown"
+                    if you can't find a suitable category
                   </p>
                 </div>
 
@@ -780,7 +785,7 @@ export default function UserAskQuestion() {
                       handleInputChange("content", e.target.value)
                     }
                     className={cn(
-                      "border-blue-200 focus:border-blue-400 resize-none",
+                      "border-cyan-200 focus:border-cyan-400 resize-none",
                       formErrors.content && "border-red-500",
                     )}
                   />
@@ -802,7 +807,7 @@ export default function UserAskQuestion() {
                   </Label>
                   <div
                     className={cn(
-                      "border-2 border-dashed border-blue-200 rounded-lg p-6 hover:border-blue-300 transition-colors",
+                      "border-2 border-dashed border-cyan-200 rounded-lg p-6 hover:border-cyan-300 transition-colors",
                       uploadingImages && "opacity-50 cursor-not-allowed",
                     )}
                   >
@@ -822,7 +827,7 @@ export default function UserAskQuestion() {
                         "cursor-pointer flex flex-col items-center gap-2 transition-colors",
                         uploadingImages
                           ? "text-gray-400 cursor-not-allowed"
-                          : "text-gray-600 hover:text-blue-600",
+                          : "text-gray-600 hover:text-cyan-600",
                       )}
                     >
                       <Upload className="h-8 w-8" />
@@ -832,8 +837,8 @@ export default function UserAskQuestion() {
                           : "Click to upload images"}
                       </span>
                       <span className="text-sm text-gray-500">
-                        PNG, JPG, GIF, WebP up to 5MB each • {selectedFiles.length}{" "}
-                        file(s) selected
+                        PNG, JPG, GIF, WebP up to 5MB each •{" "}
+                        {selectedFiles.length} file(s) selected
                       </span>
                     </label>
                   </div>
@@ -893,8 +898,15 @@ export default function UserAskQuestion() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={loading || uploadingImages || !questionForm.title.trim() || !questionForm.content.trim() || !questionForm.description.trim() || questionForm.tags.length === 0}
-                    className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                    disabled={
+                      loading ||
+                      uploadingImages ||
+                      !questionForm.title.trim() ||
+                      !questionForm.content.trim() ||
+                      !questionForm.description.trim() ||
+                      questionForm.tags.length === 0
+                    }
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white flex-1"
                   >
                     {loading ? "Posting..." : "Post Question"}
                   </Button>
@@ -918,15 +930,16 @@ export default function UserAskQuestion() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Tag className="h-5 w-5 text-blue-600" />
+                <Tag className="h-5 w-5 text-cyan-600" />
                 About Tags
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="bg-blue-50 p-3 rounded border border-blue-200">
-                <p className="font-medium text-blue-800 mb-1">Choose Wisely</p>
-                <p className="text-blue-700">
-                  Select tags that best describe your question. Use "unknown" if you can't find a suitable category.
+              <div className="bg-cyan-50 p-3 rounded border border-cyan-200">
+                <p className="font-medium text-cyan-800 mb-1">Choose Wisely</p>
+                <p className="text-cyan-700">
+                  Select tags that best describe your question. Use "unknown" if
+                  you can't find a suitable category.
                 </p>
               </div>
               <div className="space-y-2 text-gray-700">
@@ -942,7 +955,7 @@ export default function UserAskQuestion() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <HelpCircle className="h-5 w-5 text-blue-600" />
+                <HelpCircle className="h-5 w-5 text-cyan-600" />
                 Writing Tips
               </CardTitle>
             </CardHeader>
@@ -1004,17 +1017,17 @@ export default function UserAskQuestion() {
       {/* Tag Browser Dialog */}
       <Dialog open={tagBrowserOpen} onOpenChange={setTagBrowserOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 -m-6 mb-4 p-6 rounded-t-lg">
+          <div className="bg-gradient-to-r from-cyan-500 to-indigo-600 -m-6 mb-4 p-6 rounded-t-lg">
             <DialogTitle className="text-white text-xl font-semibold">
               Browse All Tags
             </DialogTitle>
-            <p className="text-blue-100 text-sm mt-1">
+            <p className="text-cyan-100 text-sm mt-1">
               Select tags that best describe your question
             </p>
             <DialogClose asChild>
               <button
                 aria-label="Close tag browser"
-                className="absolute right-3 top-3 text-blue-100 hover:text-white"
+                className="absolute right-3 top-3 text-cyan-100 hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1035,17 +1048,17 @@ export default function UserAskQuestion() {
 
             {/* Selected tags display */}
             {questionForm.tags.length > 0 && (
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <p className="text-sm font-medium text-blue-800 mb-2">
+              <div className="bg-cyan-50 p-3 rounded-lg">
+                <p className="text-sm font-medium text-cyan-800 mb-2">
                   Selected tags ({questionForm.tags.length}/5):
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {questionForm.tags.map((tagName) => (
-                    <Badge key={tagName} className="bg-blue-200 text-blue-800">
+                    <Badge key={tagName} className="bg-cyan-200 text-cyan-800">
                       {tagName}
                       <button
                         onClick={() => removeTag(tagName)}
-                        className="ml-1 hover:bg-blue-300 rounded-full"
+                        className="ml-1 hover:bg-cyan-300 rounded-full"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1059,7 +1072,7 @@ export default function UserAskQuestion() {
             <div className="max-h-96 overflow-y-auto">
               {tagsLoading ? (
                 <div className="flex justify-center items-center h-32">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-cyan-600" />
                   <span className="ml-2 text-gray-600">Loading tags...</span>
                 </div>
               ) : paginatedBrowserTags.length === 0 ? (
@@ -1075,9 +1088,10 @@ export default function UserAskQuestion() {
                       className={cn(
                         "p-3 cursor-pointer transition-all duration-200",
                         questionForm.tags.includes(tag.name)
-                          ? "bg-blue-50 border-blue-300 ring-2 ring-blue-200"
-                          : "hover:bg-gray-50 hover:border-blue-200",
-                        tag.isSpecial && "bg-gradient-to-br from-blue-50 to-indigo-50"
+                          ? "bg-cyan-50 border-cyan-300 ring-2 ring-cyan-200"
+                          : "hover:bg-gray-50 hover:border-cyan-200",
+                        tag.isSpecial &&
+                          "bg-gradient-to-br from-cyan-50 to-indigo-50",
                       )}
                       onClick={() => {
                         if (questionForm.tags.includes(tag.name)) {
@@ -1096,21 +1110,21 @@ export default function UserAskQuestion() {
                                 tag.name === "request"
                                   ? "bg-orange-100 text-orange-800"
                                   : tag.name === "unknown"
-                                  ? "bg-gray-100 text-gray-800"
-                                  : tag.isSpecial
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-gray-100 text-gray-800"
+                                    ? "bg-gray-100 text-gray-800"
+                                    : tag.isSpecial
+                                      ? "bg-cyan-100 text-cyan-800"
+                                      : "bg-gray-100 text-gray-800",
                               )}
                             >
                               {tag.name}
                             </Badge>
                             {tag.isSpecial && (
-                              <span className="text-xs text-blue-600 font-medium">
+                              <span className="text-xs text-cyan-600 font-medium">
                                 SPECIAL
                               </span>
                             )}
                             {questionForm.tags.includes(tag.name) && (
-                              <CheckCircle className="h-4 w-4 text-blue-600" />
+                              <CheckCircle className="h-4 w-4 text-cyan-600" />
                             )}
                           </div>
                           <p className="text-xs text-gray-600 leading-relaxed">
@@ -1143,8 +1157,8 @@ export default function UserAskQuestion() {
                       className={cn(
                         "w-8 h-8 flex items-center justify-center rounded-md border font-medium text-sm",
                         pageNum === tagBrowserPage
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "border-blue-300 text-blue-700 hover:bg-blue-100",
+                          ? "bg-cyan-600 text-white border-cyan-600"
+                          : "border-cyan-300 text-cyan-700 hover:bg-cyan-100",
                       )}
                       onClick={() => setTagBrowserPage(pageNum)}
                     >
@@ -1160,15 +1174,15 @@ export default function UserAskQuestion() {
 
       {/* Tag Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-md border-blue-200 shadow-xl">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 -m-6 mb-4 p-6 rounded-t-lg">
+        <DialogContent className="max-w-md border-cyan-200 shadow-xl">
+          <div className="bg-gradient-to-r from-cyan-500 to-indigo-600 -m-6 mb-4 p-6 rounded-t-lg">
             <DialogTitle className="text-white text-xl font-semibold">
               Tag Preview
             </DialogTitle>
             <DialogClose asChild>
               <button
                 aria-label="Close preview"
-                className="absolute right-3 top-3 text-blue-100 hover:text-white"
+                className="absolute right-3 top-3 text-cyan-100 hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1184,16 +1198,16 @@ export default function UserAskQuestion() {
                     previewTag.name === "request"
                       ? "bg-orange-100 text-orange-800 border border-orange-200"
                       : previewTag.name === "unknown"
-                      ? "bg-gray-100 text-gray-600 border border-gray-200"
-                      : previewTag.isSpecial
-                      ? "bg-blue-100 text-blue-800 border border-blue-200"
-                      : "bg-gray-100 text-gray-800"
+                        ? "bg-gray-100 text-gray-600 border border-gray-200"
+                        : previewTag.isSpecial
+                          ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
+                          : "bg-gray-100 text-gray-800",
                   )}
                 >
                   {previewTag.name}
                 </Badge>
                 {previewTag.isSpecial && (
-                  <span className="text-xs text-blue-600 font-medium">
+                  <span className="text-xs text-cyan-600 font-medium">
                     SPECIAL TAG
                   </span>
                 )}
@@ -1216,8 +1230,8 @@ export default function UserAskQuestion() {
                     questionForm.tags.includes(previewTag.name)
                       ? "bg-red-600 hover:bg-red-700 text-white"
                       : questionForm.tags.length >= 5
-                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white",
+                        ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                        : "bg-cyan-600 hover:bg-cyan-700 text-white",
                   )}
                   disabled={
                     !questionForm.tags.includes(previewTag.name) &&
@@ -1227,8 +1241,8 @@ export default function UserAskQuestion() {
                   {questionForm.tags.includes(previewTag.name)
                     ? "Remove Tag"
                     : questionForm.tags.length >= 5
-                    ? "Tag Limit Reached (5/5)"
-                    : "Use This Tag"}
+                      ? "Tag Limit Reached (5/5)"
+                      : "Use This Tag"}
                 </Button>
               </div>
             </div>
