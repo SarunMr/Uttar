@@ -22,6 +22,7 @@ import UserHome from "../pages/Devlopers/Dashboard";
 import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
 import UserAskQuestion from "../pages/Devlopers/UserAskQuestion.jsx";
 import UserQuestionDetail from "../pages/Devlopers/UserQuestionDetail.jsx";
+import UserSavedQuestion from "../pages/Devlopers/UserSavedQuestion.jsx";
 import UserTags from "../pages/Devlopers/Tags.jsx";
 import UserMyPosts from "../pages/Devlopers/UserMyPosts.jsx";
 import UserEditQuestion from "../pages/Devlopers/UserEditQuestion.jsx";
@@ -56,7 +57,7 @@ export default function AppRoutes() {
         <Route path="questions" element={<UserQuestions />} />
         <Route path="questions/ask" element={<UserAskQuestion />} />
         <Route path="questions/:id" element={<UserQuestionDetail />} />
-
+        <Route path="saved" element={<UserSavedQuestion />} />
         <Route path="tags" element={<UserTags />} />
         <Route path="my-posts" element={<UserMyPosts />} />
         <Route path="my-posts/edit/:id" element={<UserEditQuestion />} />

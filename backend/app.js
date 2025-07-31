@@ -12,6 +12,7 @@ const authRoutes = require("./routes/auth");
 const tagRoutes = require("./routes/tags");
 const questionRoutes = require("./routes/question.js");
 const commentRoutes = require("./routes/comments.js")
+const profileRoutes = require("./routes/profile.js")
 require("./models/associations.js");
 
 // Create Express app
@@ -50,6 +51,7 @@ app.get("/health", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tags", tagRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/comments", commentRoutes);
 
