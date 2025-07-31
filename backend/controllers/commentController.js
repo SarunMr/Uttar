@@ -2,6 +2,8 @@ const Comment = require("../models/Comment");
 const CommentLike = require("../models/CommentLike");
 const Question = require("../models/Question");
 const User = require("../models/User");
+// Import sequelize instance - adjust this path to match your database connection file
+const { sequelize } = require("../viable/db.js"); // or wherever your sequelize instance is
 
 // Create comment
 async function createComment(req, res) {
@@ -18,11 +20,12 @@ async function createComment(req, res) {
         .json({ success: false, message: "Question not found" });
     }
 
-    // Create comment
+    // Create comment with initial likes set to 0
     const comment = await Comment.create({
       content,
       questionId,
       authorId: userId,
+      likes: 0, // Initialize likes to 0
     });
 
     // Update question comments count
@@ -43,6 +46,7 @@ async function createComment(req, res) {
       success: true,
       data: {
         ...commentWithAuthor.toJSON(),
+        likes: 0, // Ensure starts at 0
         isLiked: false,
       },
     });
@@ -90,10 +94,19 @@ async function updateComment(req, res) {
       where: { commentId, userId },
     });
 
+    // Get actual like count
+    const actualLikeCount = await CommentLike.count({ where: { commentId } });
+
+    // Update comment with actual count if different
+    if (comment.likes !== actualLikeCount) {
+      await comment.update({ likes: actualLikeCount });
+    }
+
     res.json({
       success: true,
       data: {
         ...comment.toJSON(),
+        likes: actualLikeCount,
         isLiked: !!userLike,
       },
     });
@@ -125,6 +138,7 @@ async function deleteComment(req, res) {
 
     const question = await Question.findByPk(comment.questionId);
 
+    // Delete comment and associated likes
     await comment.destroy();
 
     if (question) {
@@ -138,11 +152,14 @@ async function deleteComment(req, res) {
   }
 }
 
-// Toggle comment like
 async function toggleCommentLike(req, res) {
   try {
     const commentId = req.params.id;
     const userId = req.user.id;
+
+    console.log(
+      `Toggle comment like - CommentID: ${commentId}, UserID: ${userId}`,
+    );
 
     const comment = await Comment.findByPk(commentId);
     if (!comment) {
@@ -155,27 +172,37 @@ async function toggleCommentLike(req, res) {
       where: { commentId, userId },
     });
 
+    console.log(`Existing comment like found: ${!!existingLike}`);
+
+    let isLiked;
     if (existingLike) {
+      // Remove like
       await existingLike.destroy();
-      await comment.decrement("likes");
-
-      res.json({
-        success: true,
-        message: "Like removed",
-        isLiked: false,
-        likes: comment.likes - 1,
-      });
+      isLiked = false;
+      console.log("Comment like removed");
     } else {
+      // Add like
       await CommentLike.create({ commentId, userId });
-      await comment.increment("likes");
-
-      res.json({
-        success: true,
-        message: "Comment liked",
-        isLiked: true,
-        likes: comment.likes + 1,
-      });
+      isLiked = true;
+      console.log("Comment like added");
     }
+
+    // Get actual count from database
+    const actualCount = await CommentLike.count({ where: { commentId } });
+    console.log(`Actual comment like count: ${actualCount}`);
+
+    // Update comment with actual count
+    await comment.update({ likes: actualCount });
+
+    const response = {
+      success: true,
+      message: isLiked ? "Comment liked" : "Like removed",
+      isLiked,
+      likes: actualCount,
+    };
+
+    console.log("Comment like response:", response);
+    res.json(response);
   } catch (error) {
     console.error("Error toggling comment like:", error);
     res.status(500).json({ success: false, message: "Server error" });

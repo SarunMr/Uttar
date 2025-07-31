@@ -7,6 +7,7 @@ const {
   getQuestion,
   toggleQuestionLike,
   toggleBookmark,
+  trackQuestionView,
 } = require("../controllers/questionController");
 const { createQuestionRules } = require("../viable/questionValidator");
 const validateRequest = require("../viable/validateRequest");
@@ -33,5 +34,7 @@ router.post("/:id/like", authenticateToken, toggleQuestionLike);
 
 // Toggle bookmark
 router.post("/:id/bookmark", authenticateToken, toggleBookmark);
+// Add this route for view tracking
+router.post("/:id/view", authenticateToken, trackQuestionView);
 
 module.exports = router;

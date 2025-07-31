@@ -12,6 +12,9 @@ import AskQuestions from "../pages/Admin/AskQuestions.jsx";
 import QuestionDetail from "../pages/Admin/QuestionDetail.jsx";
 
 import UserHome from "../pages/Devlopers/Dashboard";
+import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
+import UserAskQuestion from "../pages/Devlopers/UserAskQuestion.jsx";
+
 import UserTags from "../pages/Devlopers/Tags.jsx";
 import DeveloperLayout from "../layout/DevelopersLayout.jsx";
 
@@ -38,6 +41,8 @@ export default function AppRoutes() {
 
       <Route path="/user" element={<DeveloperLayout />}>
         <Route path="home" element={<UserHome />} />
+        <Route path="questions" element={<UserQuestions />} />
+        <Route path="questions/ask" element={<UserAskQuestion />} />
         <Route path="tags" element={<UserTags />} />
       </Route>
     </Routes>

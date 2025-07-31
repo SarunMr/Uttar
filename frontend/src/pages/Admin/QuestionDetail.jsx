@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,17 +42,13 @@ import axios from "axios";
 export default function QuestionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const viewTrackedRef = useRef(false); // Track if view has been recorded
 
   // Question and comments state
   const [question, setQuestion] = useState(null);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Like states
-  const [isQuestionLiked, setIsQuestionLiked] = useState(false);
-  const [questionLikes, setQuestionLikes] = useState(0);
-  const [commentLikes, setCommentLikes] = useState({});
 
   // Bookmark state
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -70,72 +66,176 @@ export default function QuestionDetail() {
   // API Base URL
   const API_BASE_URL = "http://localhost:5000";
 
+  // Debug effect to log question state changes
   useEffect(() => {
+    if (question) {
+      console.log("=== QUESTION STATE UPDATED ===");
+      console.log("Question isLiked in state:", question.isLiked);
+      console.log("Question likes in state:", question.likes);
+      console.log("=== END STATE UPDATE ===");
+    }
+  }, [question?.isLiked, question?.likes]);
+
+  useEffect(() => {
+    // Reset view tracking when question ID changes
+    viewTrackedRef.current = false;
     loadQuestionDetail();
   }, [id]);
+
+  // Separate effect to track view after question loads
+  useEffect(() => {
+    if (question && !viewTrackedRef.current) {
+      trackView();
+      viewTrackedRef.current = true;
+    }
+  }, [question, id]); // Added id dependency
 
   const loadQuestionDetail = async () => {
     setLoading(true);
     setError("");
     try {
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
       const response = await axios.get(`${API_BASE_URL}/api/questions/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers,
       });
 
       if (response.data.success) {
         const questionData = response.data.data;
-        setQuestion(questionData);
-        setIsQuestionLiked(questionData.isLiked || false);
-        setQuestionLikes(questionData.likes || 0);
-        setIsBookmarked(questionData.isBookmarked || false);
+        console.log("=== QUESTION DATA LOADED ===");
+        console.log("Question ID:", questionData.id);
+        console.log("Question isLiked:", questionData.isLiked);
+        console.log("Question likes count:", questionData.likes);
+        console.log(
+          "Comments with like status:",
+          questionData.questionComments?.map((c) => ({
+            id: c.id,
+            content: c.content.substring(0, 30) + "...",
+            likes: c.likes,
+            isLiked: c.isLiked,
+          })),
+        );
+        console.log("=== END QUESTION DATA ===");
 
-        // Set comment likes state
-        const commentLikesMap = {};
-        questionData.questionComments?.forEach(comment => {
-          commentLikesMap[comment.id] = comment.isLiked || false;
-        });
-        setCommentLikes(commentLikesMap);
+        setQuestion(questionData);
+        setIsBookmarked(questionData.isBookmarked || false);
       } else {
         setError(response.data.message || "Failed to load question");
       }
     } catch (error) {
       console.error("Error loading question:", error);
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to load question"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to load question",
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // Toggle question like
-  const handleToggleQuestionLike = async () => {
-    if (likeLoading.question) return;
+  // Track view count
+  const trackView = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("No token found, skipping view tracking");
+        return;
+      }
 
-    setLikeLoading(prev => ({ ...prev, question: true }));
+      const response = await axios.post(
+        `${API_BASE_URL}/api/questions/${id}/view`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.data.success) {
+        // Update the view count in the question
+        setQuestion((prev) =>
+          prev
+            ? {
+                ...prev,
+                views: response.data.views,
+              }
+            : prev,
+        );
+      }
+    } catch (error) {
+      console.error("Error tracking view:", error);
+      // Don't show error to user for view tracking
+    }
+  };
+
+  // Toggle question like with proper state management
+  const handleToggleQuestionLike = async () => {
+    if (likeLoading.question || !question) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No authentication token found");
+      return;
+    }
+
+    // Store current state for potential rollback
+    const wasLiked = question.isLiked;
+    const currentLikes = question.likes || 0;
+
+    // Optimistic update
+    setQuestion((prev) => ({
+      ...prev,
+      isLiked: !wasLiked,
+      likes: wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1,
+    }));
+
+    setLikeLoading((prev) => ({ ...prev, question: true }));
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/questions/${id}/like`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
-        setIsQuestionLiked(response.data.isLiked);
-        setQuestionLikes(response.data.likes);
+        // Update with server response
+        setQuestion((prev) => ({
+          ...prev,
+          isLiked: response.data.isLiked,
+          likes: Math.max(0, response.data.likes || 0),
+        }));
+        console.log("Question like updated:", {
+          isLiked: response.data.isLiked,
+          likes: response.data.likes,
+        });
+      } else {
+        console.error("Server returned error:", response.data.message);
+        // Revert optimistic update on failure
+        setQuestion((prev) => ({
+          ...prev,
+          isLiked: wasLiked,
+          likes: currentLikes,
+        }));
       }
     } catch (error) {
       console.error("Error toggling question like:", error);
+      console.error("Error details:", error.response?.data);
+      // Revert optimistic update on error
+      setQuestion((prev) => ({
+        ...prev,
+        isLiked: wasLiked,
+        likes: currentLikes,
+      }));
     } finally {
-      setLikeLoading(prev => ({ ...prev, question: false }));
+      setLikeLoading((prev) => ({ ...prev, question: false }));
     }
   };
 
@@ -149,7 +249,7 @@ export default function QuestionDetail() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -175,25 +275,19 @@ export default function QuestionDetail() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
         const newCommentData = response.data.data;
-        
+
         // Update question with new comment
-        setQuestion(prev => ({
+        setQuestion((prev) => ({
           ...prev,
           questionComments: [...(prev.questionComments || []), newCommentData],
-          comments: (prev.comments || 0) + 1
+          commentsCount: (prev.commentsCount || 0) + 1,
         }));
-        
-        // Set like state for new comment
-        setCommentLikes(prev => ({
-          ...prev,
-          [newCommentData.id]: false
-        }));
-        
+
         setNewComment("");
       }
     } catch (error) {
@@ -221,17 +315,17 @@ export default function QuestionDetail() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
         const updatedComment = response.data.data;
-        
-        setQuestion(prev => ({
+
+        setQuestion((prev) => ({
           ...prev,
-          questionComments: prev.questionComments.map(comment =>
-            comment.id === editingCommentId ? updatedComment : comment
-          )
+          questionComments: prev.questionComments.map((comment) =>
+            comment.id === editingCommentId ? updatedComment : comment,
+          ),
         }));
 
         setEditingCommentId(null);
@@ -266,24 +360,17 @@ export default function QuestionDetail() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
-        setQuestion(prev => ({
+        setQuestion((prev) => ({
           ...prev,
           questionComments: prev.questionComments.filter(
-            comment => comment.id !== commentToDelete.id
+            (comment) => comment.id !== commentToDelete.id,
           ),
-          comments: (prev.comments || 0) - 1
+          commentsCount: Math.max(0, (prev.commentsCount || 0) - 1),
         }));
-
-        // Remove from comment likes state
-        setCommentLikes(prev => {
-          const newState = { ...prev };
-          delete newState[commentToDelete.id];
-          return newState;
-        });
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -294,42 +381,100 @@ export default function QuestionDetail() {
     }
   };
 
-  // Toggle comment like
+  // Toggle comment like with optimistic updates
   const handleToggleCommentLike = async (commentId) => {
-    if (likeLoading[commentId]) return;
+    if (likeLoading[commentId] || !question) return;
 
-    setLikeLoading(prev => ({ ...prev, [commentId]: true }));
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No authentication token found");
+      return;
+    }
+
+    // Find the comment to get current state
+    const comment = question.questionComments.find((c) => c.id === commentId);
+    if (!comment) {
+      console.error("Comment not found:", commentId);
+      return;
+    }
+
+    const wasLiked = comment.isLiked;
+    const currentLikes = comment.likes || 0;
+
+    // Optimistic update
+    setQuestion((prev) => ({
+      ...prev,
+      questionComments: prev.questionComments.map((c) =>
+        c.id === commentId
+          ? {
+              ...c,
+              isLiked: !wasLiked,
+              likes: wasLiked
+                ? Math.max(0, currentLikes - 1)
+                : currentLikes + 1,
+            }
+          : c,
+      ),
+    }));
+
+    setLikeLoading((prev) => ({ ...prev, [commentId]: true }));
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/comments/${commentId}/like`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
-        setCommentLikes(prev => ({
+        // Update with server response
+        setQuestion((prev) => ({
           ...prev,
-          [commentId]: response.data.isLiked
+          questionComments: prev.questionComments.map((c) =>
+            c.id === commentId
+              ? {
+                  ...c,
+                  isLiked: response.data.isLiked,
+                  likes: Math.max(0, response.data.likes || 0),
+                }
+              : c,
+          ),
         }));
-
-        // Update comment likes count in question
-        setQuestion(prev => ({
+        console.log("Comment like updated:", {
+          commentId,
+          isLiked: response.data.isLiked,
+          likes: response.data.likes,
+        });
+      } else {
+        console.error("Server returned error:", response.data.message);
+        // Revert optimistic update on failure
+        setQuestion((prev) => ({
           ...prev,
-          questionComments: prev.questionComments.map(comment =>
-            comment.id === commentId 
-              ? { ...comment, likes: response.data.likes }
-              : comment
-          )
+          questionComments: prev.questionComments.map((c) =>
+            c.id === commentId
+              ? { ...c, isLiked: wasLiked, likes: currentLikes }
+              : c,
+          ),
         }));
       }
     } catch (error) {
       console.error("Error toggling comment like:", error);
+      console.error("Error details:", error.response?.data);
+      // Revert optimistic update on error
+      setQuestion((prev) => ({
+        ...prev,
+        questionComments: prev.questionComments.map((c) =>
+          c.id === commentId
+            ? { ...c, isLiked: wasLiked, likes: currentLikes }
+            : c,
+        ),
+      }));
     } finally {
-      setLikeLoading(prev => ({ ...prev, [commentId]: false }));
+      setLikeLoading((prev) => ({ ...prev, [commentId]: false }));
     }
   };
 
@@ -387,10 +532,7 @@ export default function QuestionDetail() {
     <div className="max-w-4xl mx-auto">
       {/* Header with Navigation and Actions */}
       <div className="flex items-center justify-between mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/admin/questions")}
-        >
+        <Button variant="ghost" onClick={() => navigate("/admin/questions")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Questions
         </Button>
@@ -401,9 +543,9 @@ export default function QuestionDetail() {
             onClick={handleBookmark}
             className={cn(
               "flex items-center gap-2",
-              isBookmarked 
-                ? "bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100" 
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              isBookmarked
+                ? "bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50",
             )}
           >
             {isBookmarked ? (
@@ -414,7 +556,7 @@ export default function QuestionDetail() {
             {isBookmarked ? "Bookmarked" : "Bookmark"}
           </Button>
 
-          <Button 
+          <Button
             onClick={() => navigate("/admin/questions/ask")}
             className="bg-cyan-600 hover:bg-cyan-700 text-white"
           >
@@ -440,11 +582,11 @@ export default function QuestionDetail() {
                   variant="secondary"
                   className={cn(
                     "text-sm font-medium flex items-center gap-1",
-                    tagName === "admin" 
-                      ? "bg-cyan-100 text-cyan-800 border border-cyan-200" 
+                    tagName === "admin"
+                      ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
                       : tagName === "request"
-                      ? "bg-blue-100 text-blue-800 border border-blue-200"
-                      : "bg-gray-100 text-gray-800"
+                        ? "bg-blue-100 text-blue-800 border border-blue-200"
+                        : "bg-gray-100 text-gray-800",
                   )}
                 >
                   <Tag className="h-3 w-3" />
@@ -476,20 +618,19 @@ export default function QuestionDetail() {
               disabled={likeLoading.question}
               className={cn(
                 "flex items-center gap-1 transition-colors",
-                isQuestionLiked 
-                  ? "text-red-600 hover:text-red-700" 
-                  : "text-gray-600 hover:text-red-600"
+                question.isLiked
+                  ? "text-red-600 hover:text-red-700"
+                  : "text-gray-600 hover:text-red-600",
               )}
             >
-              <Heart className={cn(
-                "h-5 w-5",
-                isQuestionLiked && "fill-current"
-              )} />
-              <span>{questionLikes} likes</span>
+              <Heart
+                className={cn("h-5 w-5", question.isLiked && "fill-current")}
+              />
+              <span>{Math.max(0, question.likes || 0)} likes</span>
             </button>
             <div className="flex items-center gap-1 text-gray-600">
               <Eye className="h-5 w-5" />
-              <span>{question.views} views</span>
+              <span>{Math.max(0, question.views || 0)} views</span>
             </div>
             <div className="flex items-center gap-1 text-gray-600">
               <MessageSquare className="h-5 w-5" />
@@ -585,7 +726,8 @@ export default function QuestionDetail() {
 
           {/* Comments List */}
           <div className="space-y-4">
-            {!question.questionComments || question.questionComments.length === 0 ? (
+            {!question.questionComments ||
+            question.questionComments.length === 0 ? (
               <p className="text-gray-500 text-center py-8">
                 No comments yet. Be the first to comment!
               </p>
@@ -616,21 +758,26 @@ export default function QuestionDetail() {
                           <span className="text-gray-500">
                             {formatDate(comment.createdAt)}
                           </span>
-                          {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
-                            <>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-xs text-gray-500 italic">
-                                updated {formatDate(comment.updatedAt)}
-                              </span>
-                            </>
-                          )}
+                          {comment.updatedAt &&
+                            comment.updatedAt !== comment.createdAt && (
+                              <>
+                                <span className="text-gray-400">•</span>
+                                <span className="text-xs text-gray-500 italic">
+                                  updated {formatDate(comment.updatedAt)}
+                                </span>
+                              </>
+                            )}
                         </div>
 
                         {/* Comment Actions */}
                         {canEditComment(comment) && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -661,7 +808,9 @@ export default function QuestionDetail() {
                         <div className="space-y-3">
                           <Textarea
                             value={editCommentContent}
-                            onChange={(e) => setEditCommentContent(e.target.value)}
+                            onChange={(e) =>
+                              setEditCommentContent(e.target.value)
+                            }
                             rows={3}
                             className="border-cyan-200 focus:border-cyan-400"
                             disabled={commentLoading}
@@ -671,7 +820,9 @@ export default function QuestionDetail() {
                               size="sm"
                               onClick={handleSaveEdit}
                               className="bg-cyan-600 hover:bg-cyan-700"
-                              disabled={commentLoading || !editCommentContent.trim()}
+                              disabled={
+                                commentLoading || !editCommentContent.trim()
+                              }
                             >
                               {commentLoading ? "Saving..." : "Save"}
                             </Button>
@@ -692,21 +843,23 @@ export default function QuestionDetail() {
                       )}
 
                       <div className="flex items-center gap-4">
-                        <button 
+                        <button
                           onClick={() => handleToggleCommentLike(comment.id)}
                           disabled={likeLoading[comment.id]}
                           className={cn(
                             "flex items-center gap-1 text-sm transition-colors",
-                            commentLikes[comment.id]
+                            comment.isLiked
                               ? "text-red-600 hover:text-red-700"
-                              : "text-gray-500 hover:text-red-600"
+                              : "text-gray-500 hover:text-red-600",
                           )}
                         >
-                          <Heart className={cn(
-                            "h-4 w-4",
-                            commentLikes[comment.id] && "fill-current"
-                          )} />
-                          <span>{comment.likes}</span>
+                          <Heart
+                            className={cn(
+                              "h-4 w-4",
+                              comment.isLiked && "fill-current",
+                            )}
+                          />
+                          <span>{Math.max(0, comment.likes || 0)}</span>
                         </button>
                       </div>
                     </div>
@@ -725,7 +878,8 @@ export default function QuestionDetail() {
             <DialogTitle>Delete Comment</DialogTitle>
           </DialogHeader>
           <p className="text-gray-600">
-            Are you sure you want to delete this comment? This action cannot be undone.
+            Are you sure you want to delete this comment? This action cannot be
+            undone.
           </p>
           <DialogFooter>
             <Button
