@@ -44,6 +44,7 @@ async function getMyQuestions(req, res) {
           model: Comment,
           as: "questionComments",
           attributes: ["id"],
+          required: false, // FIXED: Added required: false
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -172,8 +173,8 @@ async function deleteQuestion(req, res) {
       });
     }
 
-    // Delete associated comments first (if not using CASCADE)
-    await QuestionComment.destroy({
+    // FIXED: Use Comment instead of QuestionComment
+    await Comment.destroy({
       where: { questionId: id },
     });
 
@@ -192,6 +193,7 @@ async function deleteQuestion(req, res) {
     });
   }
 }
+
 // Create a new question with uploaded images
 async function createQuestion(req, res) {
   try {
@@ -440,6 +442,96 @@ async function getQuestion(req, res) {
   }
 }
 
+// FIXED: Get bookmarked questions by current user
+async function getBookmarkedQuestions(req, res) {
+  try {
+    const userId = req.user.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
+
+    // Build search condition for questions
+    const searchCondition = search
+      ? {
+          [Op.or]: [
+            { title: { [Op.iLike]: `%${search}%` } },
+            { description: { [Op.iLike]: `%${search}%` } },
+            { content: { [Op.iLike]: `%${search}%` } },
+          ],
+        }
+      : {};
+
+    // FIXED: Proper query to get bookmarked questions
+    const { count, rows } = await Question.findAndCountAll({
+      where: searchCondition,
+      include: [
+        {
+          model: User,
+          as: "author",
+          attributes: ["id", "firstName", "lastName", "username"],
+        },
+        {
+          model: Comment,
+          as: "questionComments",
+          attributes: ["id"],
+          required: false, // LEFT JOIN
+        },
+        {
+          model: Bookmark,
+          as: "bookmarks",
+          where: { userId: userId }, // Only get questions bookmarked by current user
+          attributes: ["id", "createdAt"],
+          required: true, // INNER JOIN - only questions with bookmarks
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    // Format response
+    const questions = rows.map((question) => ({
+      id: question.id,
+      title: question.title,
+      description: question.description,
+      content: question.content,
+      tags: question.tags,
+      images: question.images,
+      views: question.views || 0,
+      likes: question.likes || 0,
+      commentsCount: question.questionComments?.length || 0,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+      author: question.author,
+      isBookmarked: true, // All returned questions are bookmarked
+      bookmarkedAt: question.bookmarks[0]?.createdAt,
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        questions,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(count / limit),
+          totalItems: count,
+          itemsPerPage: limit,
+          hasNext: page < Math.ceil(count / limit),
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching bookmarked questions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookmarked questions",
+    });
+  }
+}
+
 // Track question view (separate endpoint)
 async function trackQuestionView(req, res) {
   try {
@@ -651,4 +743,5 @@ module.exports = {
   toggleQuestionLike,
   toggleBookmark,
   trackQuestionView,
+  getBookmarkedQuestions,
 };

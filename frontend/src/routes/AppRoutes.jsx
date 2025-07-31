@@ -16,6 +16,7 @@ import QuestionDetail from "../pages/Admin/QuestionDetail.jsx";
 import AdminSettings from "../pages/Admin/Settings.jsx";
 import MyPost from "../pages/Admin/MyPost.jsx";
 import EditQuestion from "../pages/Admin/EditQuestion.jsx";
+import SavedQuestion from "../pages/Admin/SavedQuestion.jsx";
 //User Part
 import UserHome from "../pages/Devlopers/Dashboard";
 import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
@@ -40,10 +41,11 @@ export default function AppRoutes() {
       {/* Protected Dashboards */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="home" element={<AdminHome />} />
-        <Route path="tags" element={<AdminTags />} />
         <Route path="questions" element={<AdminQuestions />} />
         <Route path="questions/ask" element={<AskQuestions />} />
         <Route path="questions/:id" element={<QuestionDetail />} />
+        <Route path="saved" element={<SavedQuestion />} />
+        <Route path="tags" element={<AdminTags />} />
         <Route path="my-posts" element={<MyPost />} />
         <Route path="my-posts/edit/:id" element={<EditQuestion />} />
         <Route path="settings" element={<AdminSettings />} />

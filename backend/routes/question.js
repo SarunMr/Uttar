@@ -10,6 +10,7 @@ const {
   trackQuestionView,
   getMyQuestions, // NEW
   updateQuestion, // NEW
+  getBookmarkedQuestions,
   deleteQuestion,
 } = require("../controllers/questionController");
 const { createQuestionRules } = require("../viable/questionValidator");
@@ -28,7 +29,7 @@ router.post(
 
 // Fetch all questions
 router.get("/", getQuestions);
-
+router.get("/bookmarked", authenticateToken, getBookmarkedQuestions);
 // Fetch one question by id
 router.get("/:id", getQuestion);
 
@@ -41,6 +42,7 @@ router.post("/:id/bookmark", authenticateToken, toggleBookmark);
 router.post("/:id/view", authenticateToken, trackQuestionView);
 // NEW ROUTES for My Posts functionality
 router.get("/my/posts", authenticateToken, getMyQuestions);
+
 router.put(
   "/:id",
   authenticateToken,
