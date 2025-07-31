@@ -2,7 +2,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   CircleQuestionMark,
-  Settings,
   UserSearch,
   Tags,
   Bookmark,
@@ -38,7 +37,7 @@ const menu = [
     section: "Account",
     items: [
       { to: "/user/profile", icon: User, label: "Profile" },
-      { to: "/user/settings", icon: Settings, label: "Settings" },
+      // Removed Settings as requested
     ],
   },
 ];
@@ -56,46 +55,49 @@ export default function DeveloperSidebar() {
   };
 
   const SidebarContent = () => (
-    <nav className="flex flex-col py-6 gap-1">
-      {menu.map((section, sectionIndex) => (
-        <div key={section.section}>
-          {/* Section Header */}
-          <div className="px-6 py-2 mb-2">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              {section.section}
-            </h3>
-          </div>
+    <div className="flex flex-col h-full">
+      {/* Navigation Content */}
+      <nav className="flex-1 py-6 gap-1 overflow-y-auto">
+        {menu.map((section, sectionIndex) => (
+          <div key={section.section}>
+            {/* Section Header */}
+            <div className="px-6 py-2 mb-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {section.section}
+              </h3>
+            </div>
 
-          {/* Section Items */}
-          <div className="space-y-1">
-            {section.items.map((item) => (
-              <NavLink
-                to={item.to}
-                key={item.to}
-                onClick={closeMobileMenu}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-6 py-3 mx-3 font-medium rounded-lg transition-all duration-200",
-                    "hover:translate-x-1",
-                    isActive || pathname === item.to
-                      ? "bg-cyan-100 text-cyan-800 shadow-sm border-l-4 border-cyan-600"
-                      : "text-gray-700 hover:bg-cyan-50 hover:text-cyan-700",
-                  )
-                }
-              >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </NavLink>
-            ))}
-          </div>
+            {/* Section Items */}
+            <div className="space-y-1">
+              {section.items.map((item) => (
+                <NavLink
+                  to={item.to}
+                  key={item.to}
+                  onClick={closeMobileMenu}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-6 py-3 mx-3 font-medium rounded-lg transition-all duration-200",
+                      "hover:translate-x-1",
+                      isActive || pathname === item.to
+                        ? "bg-cyan-100 text-cyan-800 shadow-sm border-l-4 border-cyan-600"
+                        : "text-gray-700 hover:bg-cyan-50 hover:text-cyan-700",
+                    )
+                  }
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
 
-          {/* Separator (except for last section) */}
-          {sectionIndex < menu.length - 1 && (
-            <div className="mx-6 my-4 border-b border-gray-200" />
-          )}
-        </div>
-      ))}
-    </nav>
+            {/* Separator (except for last section) */}
+            {sectionIndex < menu.length - 1 && (
+              <div className="mx-6 my-4 border-b border-gray-200" />
+            )}
+          </div>
+        ))}
+      </nav>
+    </div>
   );
 
   return (
@@ -104,7 +106,7 @@ export default function DeveloperSidebar() {
       <button
         onClick={toggleMobileMenu}
         className={cn(
-          "md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg",
+          "md:hidden fixed top-20 left-4 z-50 p-2 rounded-lg", // Fixed: Adjusted top position to be below navbar
           "bg-white border border-gray-200 shadow-sm",
           "hover:bg-gray-50 transition-colors",
         )}
@@ -119,18 +121,18 @@ export default function DeveloperSidebar() {
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 top-[64px]" // Fixed: Start overlay below navbar
           onClick={closeMobileMenu}
         />
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - Works with your sticky layout */}
       <aside
         className={cn(
           "bg-white border-r border-gray-200 shadow-sm",
           "flex-shrink-0 transition-all duration-300",
-          "w-64 hidden md:flex flex-col",
-          "sticky top-0 overflow-hidden",
+          "w-64 hidden md:flex flex-col", // Fixed: Removed fixed positioning
+          "h-full", // Fixed: Take full height of container
         )}
       >
         <SidebarContent />
@@ -139,10 +141,11 @@ export default function DeveloperSidebar() {
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "md:hidden fixed left-0 top-0 z-40 h-full",
+          "md:hidden fixed left-0 z-40", // Fixed: positioning for mobile
+          "top-[64px] bottom-0", // Fixed: Position below navbar, extend to bottom
           "bg-white border-r border-gray-200 shadow-lg",
           "w-64 transform transition-transform duration-300",
-          "overflow-hidden", // <— Added overflow-hidden
+          "h-[calc(100vh-64px)]", // Fixed: Height minus navbar height
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >

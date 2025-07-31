@@ -1,12 +1,83 @@
-import { Code } from "lucide-react";
+import {
+  Code,
+  Home,
+  Users,
+  HelpCircle,
+  FileText,
+  Tag,
+  Shield,
+} from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+
 export default function DevelopersFooter() {
+  const currentYear = new Date().getFullYear();
+
+  const quickLinks = [
+    { to: "/user/home", label: "Home", icon: Home },
+    { to: "/user/questions", label: "Questions", icon: HelpCircle },
+    { to: "/user/my-posts", label: "My Posts", icon: FileText },
+    { to: "/user/tags", label: "Tags", icon: Tag },
+    { to: "/user/profile", label: "Profile", icon: Users },
+    { to: "/user/search", label: "Search", icon: Users },
+  ];
+
   return (
-    <footer className="w-full bg-cyan-700 h-14 flex items-center justify-center text-white text-sm">
-      <div className="flex items-center gap-2">
-        <Code className="h-4 w-4 mr-1" />
-        <span>
-          Uttar Admin &copy; {new Date().getFullYear()} — Internal admin panel
-        </span>
+    <footer className="w-full bg-cyan-700 border-t border-cyan-600">
+      {/* Quick Links Section */}
+      <div className="border-b border-cyan-600 bg-cyan-800">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex flex-wrap items-center justify-center gap-1 md:gap-2">
+            {quickLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
+                    "hover:bg-cyan-600 hover:shadow-sm",
+                    isActive
+                      ? "bg-cyan-600 text-white shadow-sm"
+                      : "text-cyan-100 hover:text-white",
+                  )
+                }
+              >
+                <link.icon className="h-3 w-3" />
+                <span className="hidden sm:inline">{link.label}</span>
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Copyright Section */}
+      <div className="px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-sm">
+            {/* Left side - Brand */}
+            <div className="flex items-center gap-2">
+              <Code className="h-4 w-4" />
+              <span className="text-cyan-100">
+                <span className="font-semibold text-white">Uttar Platform</span>{" "}
+                © {currentYear}
+              </span>
+            </div>
+
+            {/* Center - Description */}
+            <div className="text-cyan-200 text-xs hidden md:block">
+              Community platform for developers and creators
+            </div>
+
+            {/* Right side - Additional info */}
+            <div className="flex items-center gap-4 text-xs text-cyan-200">
+              <span className="flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                Secure Platform
+              </span>
+              <span className="hidden sm:inline">v1.0.0</span>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );
