@@ -10,4 +10,6 @@ router.get('/', authenticateToken, getProfile);
 // Update profile (no image upload)
 router.put('/', authenticateToken, updateProfile);
 
+router.delete('/delete', authenticateToken, deleteAccount);
+
 module.exports = router;
