@@ -9,6 +9,189 @@ const User = require("../models/User");
 const { Op } = require("sequelize");
 const { sequelize } = require("../viable/db.js");
 
+// Get questions by current user (for My Posts page)
+async function getMyQuestions(req, res) {
+  try {
+    const userId = req.user.id; // From auth middleware
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
+
+    // Build search condition
+    const searchCondition = search
+      ? {
+          [Op.or]: [
+            { title: { [Op.iLike]: `%${search}%` } },
+            { description: { [Op.iLike]: `%${search}%` } },
+            { content: { [Op.iLike]: `%${search}%` } },
+          ],
+        }
+      : {};
+
+    const { count, rows } = await Question.findAndCountAll({
+      where: {
+        authorId: userId,
+        ...searchCondition,
+      },
+      include: [
+        {
+          model: User,
+          as: "author",
+          attributes: ["id", "firstName", "lastName", "username", "email"],
+        },
+        {
+          model: Comment,
+          as: "questionComments",
+          attributes: ["id"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    // Format response
+    const questions = rows.map((question) => ({
+      id: question.id,
+      title: question.title,
+      description: question.description,
+      content: question.content,
+      tags: question.tags,
+      images: question.images,
+      views: question.views || 0,
+      likes: question.likes || 0,
+      commentsCount: question.questionComments?.length || 0,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+      author: question.author,
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        questions,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(count / limit),
+          totalItems: count,
+          itemsPerPage: limit,
+          hasNext: page < Math.ceil(count / limit),
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching my questions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch your questions",
+    });
+  }
+}
+
+// Update question (only by author)
+async function updateQuestion(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const { title, description, content, tags } = req.body;
+
+    // Find question and verify ownership
+    const question = await Question.findOne({
+      where: { id, authorId: userId },
+    });
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found or you do not have permission to edit it",
+      });
+    }
+
+    // Handle new images if uploaded
+    let updatedImages = question.images || [];
+    if (req.files && req.files.length > 0) {
+      const newImagePaths = req.files.map(
+        (file) => `/uploads/questions/${file.filename}`,
+      );
+      updatedImages = [...updatedImages, ...newImagePaths];
+    }
+
+    // Update question
+    await question.update({
+      title: title || question.title,
+      description: description || question.description,
+      content: content || question.content,
+      tags: tags || question.tags,
+      images: updatedImages,
+    });
+
+    // Fetch updated question with author info
+    const updatedQuestion = await Question.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: "author",
+          attributes: ["id", "firstName", "lastName", "username"],
+        },
+      ],
+    });
+
+    res.json({
+      success: true,
+      message: "Question updated successfully",
+      data: updatedQuestion,
+    });
+  } catch (error) {
+    console.error("Error updating question:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update question",
+    });
+  }
+}
+
+// Delete question (only by author)
+async function deleteQuestion(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Find question and verify ownership
+    const question = await Question.findOne({
+      where: { id, authorId: userId },
+    });
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Question not found or you do not have permission to delete it",
+      });
+    }
+
+    // Delete associated comments first (if not using CASCADE)
+    await QuestionComment.destroy({
+      where: { questionId: id },
+    });
+
+    // Delete the question
+    await question.destroy();
+
+    res.json({
+      success: true,
+      message: "Question deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting question:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete question",
+    });
+  }
+}
 // Create a new question with uploaded images
 async function createQuestion(req, res) {
   try {
@@ -112,7 +295,7 @@ async function getQuestions(req, res) {
   }
 }
 
-// FIXED: Fetch question by id with all details and proper like status
+// FIXED: Fetch question by id with all details and proper like status for BOTH question and comments
 async function getQuestion(req, res) {
   try {
     const questionId = req.params.id;
@@ -136,8 +319,31 @@ async function getQuestion(req, res) {
               as: "author",
               attributes: ["id", "username", "firstName", "lastName"],
             },
+            {
+              model: CommentLike,
+              as: "commentLikes",
+              include: [
+                {
+                  model: User,
+                  as: "user",
+                  attributes: ["id", "firstName", "lastName"],
+                },
+              ],
+            },
           ],
           order: [["createdAt", "ASC"]],
+        },
+        // IMPORTANT: Include question likes with user data
+        {
+          model: QuestionLike,
+          as: "questionLikes",
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName"],
+            },
+          ],
         },
       ],
     });
@@ -149,88 +355,79 @@ async function getQuestion(req, res) {
       });
     }
 
-    // Initialize user-specific data
-    let userQuestionLike = null;
+    // Check if user bookmarked this question
     let isBookmarked = false;
-    let commentLikes = {};
-
     if (userId) {
-      // Check if user liked this question
-      userQuestionLike = await QuestionLike.findOne({
-        where: { questionId, userId },
-      });
-
-      console.log(`User question like found: ${!!userQuestionLike}`);
-
-      // Check if user bookmarked this question
       const bookmark = await Bookmark.findOne({
         where: { questionId, userId },
       });
       isBookmarked = !!bookmark;
-
-      // Get user's comment likes
-      if (question.questionComments.length > 0) {
-        const commentIds = question.questionComments.map((c) => c.id);
-        const userCommentLikes = await CommentLike.findAll({
-          where: { commentId: commentIds, userId },
-        });
-
-        userCommentLikes.forEach((cl) => {
-          commentLikes[cl.commentId] = true;
-        });
-
-        console.log(`Comment likes for user:`, commentLikes);
-      }
     }
 
-    // FIXED: Get actual counts and sync with database
-    const actualLikeCount = await QuestionLike.count({ where: { questionId } });
+    // Get actual counts from the included data
+    const questionData = question.toJSON();
+    const actualQuestionLikeCount = questionData.questionLikes?.length || 0;
     const actualViewCount = await QuestionView.count({ where: { questionId } });
 
     // Update question with actual counts if they differ
     if (
-      question.likes !== actualLikeCount ||
+      question.likes !== actualQuestionLikeCount ||
       question.views !== actualViewCount
     ) {
       await question.update({
-        likes: actualLikeCount,
+        likes: actualQuestionLikeCount,
         views: actualViewCount,
       });
     }
 
-    // Process comments with actual like counts
-    const updatedComments = await Promise.all(
-      question.questionComments.map(async (comment) => {
-        const actualCommentLikes = await CommentLike.count({
-          where: { commentId: comment.id },
-        });
+    // Process comments with like data
+    const processedComments = questionData.questionComments.map((comment) => {
+      const commentLikeCount = comment.commentLikes?.length || 0;
 
-        // Update comment if like count differs
-        if (comment.likes !== actualCommentLikes) {
-          await comment.update({ likes: actualCommentLikes });
-        }
+      // Check if current user liked this comment
+      const isCommentLikedByUser = userId
+        ? comment.commentLikes?.some((like) => like.user.id === userId)
+        : false;
 
-        return {
-          ...comment.toJSON(),
-          likes: actualCommentLikes,
-          isLiked: !!commentLikes[comment.id],
-        };
-      }),
-    );
+      return {
+        ...comment,
+        likes: commentLikeCount,
+        isLiked: isCommentLikedByUser,
+      };
+    });
 
-    // FIXED: Build response with proper like status
+    // IMPORTANT: Check if current user liked this QUESTION
+    const isQuestionLikedByUser = userId
+      ? questionData.questionLikes?.some((like) => like.user.id === userId)
+      : false;
+
     const responseData = {
-      ...question.toJSON(),
-      likes: actualLikeCount,
+      ...questionData,
+      likes: actualQuestionLikeCount,
       views: actualViewCount,
-      isLiked: !!userQuestionLike, // This is the key fix
+      isLiked: isQuestionLikedByUser, // This fixes the question like issue
       isBookmarked,
-      questionComments: updatedComments,
+      questionComments: processedComments,
     };
 
+    console.log("=== QUESTION RESPONSE DEBUG ===");
+    console.log(`Question ID: ${questionId}`);
+    console.log(`User ID: ${userId}`);
+    console.log(`Question likes count: ${actualQuestionLikeCount}`);
+    console.log(`Question isLiked by user: ${isQuestionLikedByUser}`);
     console.log(
-      `Sending response - Question isLiked: ${responseData.isLiked}, likes: ${responseData.likes}`,
+      `Question likes data:`,
+      questionData.questionLikes?.map((like) => like.user.id),
     );
+    console.log(
+      `Comments processed:`,
+      processedComments.map((c) => ({
+        id: c.id,
+        likes: c.likes,
+        isLiked: c.isLiked,
+      })),
+    );
+    console.log("=== END DEBUG ===");
 
     res.json({ success: true, data: responseData });
   } catch (error) {
@@ -294,7 +491,7 @@ async function trackQuestionView(req, res) {
   }
 }
 
-// FIXED: Toggle question like with proper transaction handling
+// ENHANCED: Toggle question like with populated response
 async function toggleQuestionLike(req, res) {
   const transaction = await sequelize.transaction();
 
@@ -348,6 +545,24 @@ async function toggleQuestionLike(req, res) {
     // Update question with actual count
     await question.update({ likes: newLikeCount }, { transaction });
 
+    // ENHANCED: Get populated question data for response
+    const populatedQuestion = await Question.findByPk(questionId, {
+      include: [
+        {
+          model: QuestionLike,
+          as: "questionLikes",
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName"],
+            },
+          ],
+        },
+      ],
+      transaction,
+    });
+
     await transaction.commit();
 
     const response = {
@@ -355,6 +570,7 @@ async function toggleQuestionLike(req, res) {
       message: isLiked ? "Question liked" : "Like removed",
       isLiked,
       likes: newLikeCount,
+      question: populatedQuestion, // Include populated question data
     };
 
     console.log("Question like response:", response);
@@ -429,7 +645,10 @@ module.exports = {
   createQuestion,
   getQuestions,
   getQuestion,
-  trackQuestionView,
+  getMyQuestions,
+  updateQuestion,
+  deleteQuestion,
   toggleQuestionLike,
   toggleBookmark,
+  trackQuestionView,
 };

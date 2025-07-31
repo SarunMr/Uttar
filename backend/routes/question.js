@@ -8,6 +8,9 @@ const {
   toggleQuestionLike,
   toggleBookmark,
   trackQuestionView,
+  getMyQuestions, // NEW
+  updateQuestion, // NEW
+  deleteQuestion,
 } = require("../controllers/questionController");
 const { createQuestionRules } = require("../viable/questionValidator");
 const validateRequest = require("../viable/validateRequest");
@@ -36,5 +39,13 @@ router.post("/:id/like", authenticateToken, toggleQuestionLike);
 router.post("/:id/bookmark", authenticateToken, toggleBookmark);
 // Add this route for view tracking
 router.post("/:id/view", authenticateToken, trackQuestionView);
-
+// NEW ROUTES for My Posts functionality
+router.get("/my/posts", authenticateToken, getMyQuestions);
+router.put(
+  "/:id",
+  authenticateToken,
+  upload.array("images", 5),
+  updateQuestion,
+);
+router.delete("/:id", authenticateToken, deleteQuestion);
 module.exports = router;

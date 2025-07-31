@@ -85,7 +85,7 @@ export default function DevelopersNavbar() {
           
           {/* My Posts */}
           <DropdownMenuItem
-            onClick={() => navigate("/admin/posts")}
+            onClick={() => navigate("/user/my-posts")}
             className="cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50"
           >
             <FileText className="mr-3 h-4 w-4 text-blue-600" />
@@ -94,7 +94,7 @@ export default function DevelopersNavbar() {
           
           {/* Saved */}
           <DropdownMenuItem
-            onClick={() => navigate("/admin/saved")}
+            onClick={() => navigate("/user/saved")}
             className="cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50"
           >
             <Bookmark className="mr-3 h-4 w-4 text-amber-600" />

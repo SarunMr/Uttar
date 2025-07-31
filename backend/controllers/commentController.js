@@ -31,13 +31,24 @@ async function createComment(req, res) {
     // Update question comments count
     await question.increment("commentsCount");
 
-    // Get comment with author info
+    // Get comment with author info and empty likes array
     const commentWithAuthor = await Comment.findByPk(comment.id, {
       include: [
         {
           model: User,
           as: "author",
           attributes: ["id", "username", "firstName", "lastName"],
+        },
+        {
+          model: CommentLike,
+          as: "commentLikes",
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName"],
+            },
+          ],
         },
       ],
     });
@@ -70,6 +81,17 @@ async function updateComment(req, res) {
           as: "author",
           attributes: ["id", "username", "firstName", "lastName"],
         },
+        {
+          model: CommentLike,
+          as: "commentLikes",
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName"],
+            },
+          ],
+        },
       ],
     });
 
@@ -89,13 +111,12 @@ async function updateComment(req, res) {
 
     await comment.update({ content });
 
-    // Check if user liked this comment
-    const userLike = await CommentLike.findOne({
-      where: { commentId, userId },
-    });
-
-    // Get actual like count
-    const actualLikeCount = await CommentLike.count({ where: { commentId } });
+    // Get like data from included association
+    const commentData = comment.toJSON();
+    const actualLikeCount = commentData.commentLikes?.length || 0;
+    const isLikedByUser = userId
+      ? commentData.commentLikes?.some((like) => like.user.id === userId)
+      : false;
 
     // Update comment with actual count if different
     if (comment.likes !== actualLikeCount) {
@@ -105,9 +126,9 @@ async function updateComment(req, res) {
     res.json({
       success: true,
       data: {
-        ...comment.toJSON(),
+        ...commentData,
         likes: actualLikeCount,
-        isLiked: !!userLike,
+        isLiked: isLikedByUser,
       },
     });
   } catch (error) {
@@ -152,7 +173,10 @@ async function deleteComment(req, res) {
   }
 }
 
+// ENHANCED: Toggle comment like with populated response
 async function toggleCommentLike(req, res) {
+  const transaction = await sequelize.transaction();
+
   try {
     const commentId = req.params.id;
     const userId = req.user.id;
@@ -161,8 +185,9 @@ async function toggleCommentLike(req, res) {
       `Toggle comment like - CommentID: ${commentId}, UserID: ${userId}`,
     );
 
-    const comment = await Comment.findByPk(commentId);
+    const comment = await Comment.findByPk(commentId, { transaction });
     if (!comment) {
+      await transaction.rollback();
       return res
         .status(404)
         .json({ success: false, message: "Comment not found" });
@@ -170,6 +195,7 @@ async function toggleCommentLike(req, res) {
 
     const existingLike = await CommentLike.findOne({
       where: { commentId, userId },
+      transaction,
     });
 
     console.log(`Existing comment like found: ${!!existingLike}`);
@@ -177,34 +203,73 @@ async function toggleCommentLike(req, res) {
     let isLiked;
     if (existingLike) {
       // Remove like
-      await existingLike.destroy();
+      await existingLike.destroy({ transaction });
       isLiked = false;
       console.log("Comment like removed");
     } else {
       // Add like
-      await CommentLike.create({ commentId, userId });
+      await CommentLike.create({ commentId, userId }, { transaction });
       isLiked = true;
       console.log("Comment like added");
     }
 
-    // Get actual count from database
-    const actualCount = await CommentLike.count({ where: { commentId } });
+    // Get actual count from database within transaction
+    const actualCount = await CommentLike.count({
+      where: { commentId },
+      transaction,
+    });
     console.log(`Actual comment like count: ${actualCount}`);
 
     // Update comment with actual count
-    await comment.update({ likes: actualCount });
+    await comment.update({ likes: actualCount }, { transaction });
+
+    // Get populated comment data for response
+    const populatedComment = await Comment.findByPk(commentId, {
+      include: [
+        {
+          model: User,
+          as: "author",
+          attributes: ["id", "username", "firstName", "lastName"],
+        },
+        {
+          model: CommentLike,
+          as: "commentLikes",
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName"],
+            },
+          ],
+        },
+      ],
+      transaction,
+    });
+
+    await transaction.commit();
 
     const response = {
       success: true,
       message: isLiked ? "Comment liked" : "Like removed",
       isLiked,
       likes: actualCount,
+      comment: populatedComment, // Include populated comment data
     };
 
     console.log("Comment like response:", response);
     res.json(response);
   } catch (error) {
+    await transaction.rollback();
     console.error("Error toggling comment like:", error);
+
+    // Handle unique constraint violations
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return res.status(409).json({
+        success: false,
+        message: "Like action already in progress",
+      });
+    }
+
     res.status(500).json({ success: false, message: "Server error" });
   }
 }

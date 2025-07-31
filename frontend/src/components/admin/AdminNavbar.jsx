@@ -91,7 +91,7 @@ export default function AdminNavbar() {
 
           {/* My Posts */}
           <DropdownMenuItem
-            onClick={() => navigate("/admin/posts")}
+            onClick={() => navigate("/admin/my-posts")}
             className="cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50"
           >
             <FileText className="mr-3 h-4 w-4 text-blue-600" />
