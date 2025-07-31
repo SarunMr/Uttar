@@ -10,6 +10,8 @@ import AdminQuestions from "../pages/Admin/Questions.jsx";
 import AdminTags from "../pages/Admin/Tags.jsx";
 import AskQuestions from "../pages/Admin/AskQuestions.jsx";
 import QuestionDetail from "../pages/Admin/QuestionDetail.jsx";
+import AdminSettings from "../pages/Admin/Settings.jsx";
+import MyPost from "../pages/Admin/MyPost.jsx";
 
 import UserHome from "../pages/Devlopers/Dashboard";
 import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
@@ -37,6 +39,9 @@ export default function AppRoutes() {
         <Route path="questions" element={<AdminQuestions />} />
         <Route path="questions/ask" element={<AskQuestions />} />
         <Route path="questions/:id" element={<QuestionDetail />} />
+        <Route path="my-posts" element={<MyPost />} />
+        <Route path="settings" element={<AdminSettings />} />
+
       </Route>
 
       <Route path="/user" element={<DeveloperLayout />}>
