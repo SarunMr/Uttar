@@ -13,7 +13,6 @@ import AdminQuestions from "../pages/Admin/Questions.jsx";
 import AdminTags from "../pages/Admin/Tags.jsx";
 import AskQuestions from "../pages/Admin/AskQuestions.jsx";
 import QuestionDetail from "../pages/Admin/QuestionDetail.jsx";
-import AdminSettings from "../pages/Admin/Settings.jsx";
 import MyPost from "../pages/Admin/MyPost.jsx";
 import EditQuestion from "../pages/Admin/EditQuestion.jsx";
 import SavedQuestion from "../pages/Admin/SavedQuestion.jsx";
@@ -27,6 +26,7 @@ import UserSavedQuestion from "../pages/Devlopers/UserSavedQuestion.jsx";
 import UserTags from "../pages/Devlopers/Tags.jsx";
 import UserMyPosts from "../pages/Devlopers/UserMyPosts.jsx";
 import UserEditQuestion from "../pages/Devlopers/UserEditQuestion.jsx";
+import UserProfile from "../pages/Devlopers/UserProfile.jsx";
 
 export default function AppRoutes() {
   return (
@@ -51,7 +51,6 @@ export default function AppRoutes() {
         <Route path="my-posts" element={<MyPost />} />
         <Route path="my-posts/edit/:id" element={<EditQuestion />} />
         <Route path="profile" element={<AdminProfile />} />
-        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
       <Route path="/user" element={<DeveloperLayout />}>
@@ -63,6 +62,7 @@ export default function AppRoutes() {
         <Route path="tags" element={<UserTags />} />
         <Route path="my-posts" element={<UserMyPosts />} />
         <Route path="my-posts/edit/:id" element={<UserEditQuestion />} />
+        <Route path="profile" element={<UserProfile />} />
       </Route>
     </Routes>
   );
