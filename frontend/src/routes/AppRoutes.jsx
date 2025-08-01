@@ -18,7 +18,7 @@ import EditQuestion from "../pages/Admin/EditQuestion.jsx";
 import SavedQuestion from "../pages/Admin/SavedQuestion.jsx";
 import AdminProfile from "../pages/Admin/AdminProfile.jsx";
 import AdminSearchUsers from "../pages/Admin/SearchPage.jsx";
-import AdminPreviewProfile from "../pages/Admin/SearchProfilePreview.jsx"
+import AdminPreviewProfile from "../pages/Admin/SearchProfilePreview.jsx";
 //User Part
 import UserHome from "../pages/Devlopers/Dashboard";
 import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
@@ -30,6 +30,7 @@ import UserMyPosts from "../pages/Devlopers/UserMyPosts.jsx";
 import UserEditQuestion from "../pages/Devlopers/UserEditQuestion.jsx";
 import UserProfile from "../pages/Devlopers/UserProfile.jsx";
 import UserSearchUsers from "../pages/Devlopers/UserSearchUsers.jsx";
+import UserSearchPreview from "../pages/Devlopers/UserSearchPreview.jsx";
 
 export default function AppRoutes() {
   return (
@@ -68,6 +69,7 @@ export default function AppRoutes() {
         <Route path="my-posts" element={<UserMyPosts />} />
         <Route path="my-posts/edit/:id" element={<UserEditQuestion />} />
         <Route path="search" element={<UserSearchUsers />} />
+        <Route path="search/:id" element={<UserSearchPreview />} />
         <Route path="profile" element={<UserProfile />} />
       </Route>
     </Routes>
