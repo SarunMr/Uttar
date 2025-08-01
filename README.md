@@ -363,7 +363,6 @@ Uttar/
 │   ├── package.json
 │   ├── app.js                 # Express app configuration
 │   ├── server.js              # Server entry point
-│   └── .env                   # Environment variables
 └── README.md
 ```
 
@@ -422,14 +421,28 @@ Ensure all environment variables are properly configured for production:
 
 ```env
 # Production Backend Configuration
-NODE_ENV=production
-JWT_SECRET=your_very_secure_production_jwt_secret
-DB_HOST=your_production_db_host
-DB_NAME=uttar_production
-FRONTEND_URL=https://yourdomain.com
+# Server Configuration
+PORT=your_portnumber_for_server
+NODE_ENV=development
 
-# Production Frontend Configuration
-VITE_API_BASE_URL=https://api.yourdomain.com
+# Database Configuration
+DB_HOST=localhost
+DB_NAME=your_db_name
+DB_USER=your_db_username
+DB_PASSWORD=your_db_passoword
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRE=JWT_EXPIRES_IN
+
+# CORS Configuration
+FRONTEND_URL=your_frontend_url
+
+#Admin
+
+ADMIN_EMAIL=your_admin_email
+ADMIN_PASSWORD=your_admin_password
+
 ```
 
 ### **Security Considerations**
@@ -501,7 +514,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you encounter any issues or have questions:
 
 1. Check the [Issues](https://github.com/YourUsername/Uttar/issues) page
+
 2. Create a new issue with detailed information
 3. Join our community discussions
-
-**Built with ❤️ for the developer community**
+   **Built with ❤️ for the developer community**
