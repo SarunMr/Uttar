@@ -109,7 +109,10 @@ export default function AdminNavbar() {
     <nav className="w-full bg-white border-b border-cyan-200 px-6 h-16 flex items-center sticky top-0 z-40">
       {/* Left section: logo and title */}
       <div className="flex items-center gap-3">
-        <img src={LogoBlackText} alt="Mentaro Logo" className="h-10" />
+        <img src={LogoBlackText} alt="Mentaro Logo" 
+className="h-10 cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+    onClick={() => navigate("/")}
+        />
       </div>
 
       {/* Spacer */}

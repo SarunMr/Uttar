@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
 require("dotenv").config();
+
 // Generate JWT token
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
@@ -161,6 +162,69 @@ const getProfile = async (req, res) => {
   }
 };
 
+// NEW: Get current authenticated user (for /api/auth/me)
+const getCurrentUser = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1]; // Extract Bearer token
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
+
+    // Verify the JWT token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Find user by ID from token
+    const user = await User.findByPk(decoded.userId, {
+      attributes: { exclude: ['password'] } // Don't send password
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'User account is deactivated'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to authenticate user'
+    });
+  }
+};
+
 // Logout user (client-side token removal)
 const logout = async (req, res) => {
   try {
@@ -183,4 +247,5 @@ module.exports = {
   login,
   getProfile,
   logout,
+  getCurrentUser, // Add this export
 };

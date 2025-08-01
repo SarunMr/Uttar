@@ -103,13 +103,16 @@ export default function DevelopersNavbar() {
 
   const avatarColorClass = user 
     ? getAvatarColor(user.firstName, user.lastName)
-    : "from-blue-500 to-blue-600";
+    : "from-cyan-500 to-cyan-600";
 
   return (
-    <nav className="w-full bg-white border-b border-blue-200 px-6 h-16 flex items-center sticky top-0 z-40">
+    <nav className="w-full bg-white border-b border-cyan-200 px-6 h-16 flex items-center sticky top-0 z-40">
       {/* Left section: logo and title */}
       <div className="flex items-center gap-3">
-        <img src={LogoBlackText} alt="Mentaro Logo" className="h-10" />
+        <img src={LogoBlackText} alt="Mentaro Logo" 
+className="h-10 cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+    onClick={() => navigate("/")}
+ />
       </div>
 
       {/* Spacer */}
@@ -131,7 +134,7 @@ export default function DevelopersNavbar() {
 
         <DropdownMenuContent align="end" className="w-60">
           {/* User info */}
-          <div className="px-4 py-3 select-none bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+          <div className="px-4 py-3 select-none bg-gradient-to-r from-cyan-50 to-indigo-50 border-b">
             <div className="flex items-center gap-3 mb-2">
               <Avatar className="h-10 w-10">
                 <AvatarFallback className={`bg-gradient-to-br ${avatarColorClass} text-white font-semibold text-sm`}>

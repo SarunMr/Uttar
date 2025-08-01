@@ -30,5 +30,6 @@ router.post("/login", authLimiter, loginValidation, authController.login);
 // Protected routes
 router.get("/profile", authenticateToken, authController.getProfile);
 router.post("/logout", authenticateToken, authController.logout);
+router.get('/me', authController.getCurrentUser);
 
 module.exports = router;

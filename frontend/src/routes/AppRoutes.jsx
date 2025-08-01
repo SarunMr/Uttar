@@ -1,26 +1,32 @@
-import { Routes, Route } from "react-router-dom";
-//Credential Pages
+import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "../components/ProtectedRoute";
+import AuthRoute from "../components/AuthRoute";
+
+// Import your layouts
+import AuthLayout from "../layout/AuthLayout.jsx";
+import AdminLayout from "../layout/AdminLayout.jsx";
+import DeveloperLayout from "../layout/DevelopersLayout.jsx";
+
+// Import your components
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-//Layouts
-import AuthLayout from "../layout/AuthLayout";
-import AdminLayout from "../layout/AdminLayout.jsx";
-import DeveloperLayout from "../layout/DevelopersLayout.jsx";
-//Admin Part
+
+// Admin components
 import AdminHome from "../pages/Admin/Dashboard.jsx";
 import AdminQuestions from "../pages/Admin/Questions.jsx";
-import AdminTags from "../pages/Admin/Tags.jsx";
 import AskQuestions from "../pages/Admin/AskQuestions.jsx";
 import QuestionDetail from "../pages/Admin/QuestionDetail.jsx";
+import SavedQuestion from "../pages/Admin/SavedQuestion.jsx";
+import AdminTags from "../pages/Admin/Tags.jsx";
 import MyPost from "../pages/Admin/MyPost.jsx";
 import EditQuestion from "../pages/Admin/EditQuestion.jsx";
-import SavedQuestion from "../pages/Admin/SavedQuestion.jsx";
-import AdminProfile from "../pages/Admin/AdminProfile.jsx";
 import AdminSearchUsers from "../pages/Admin/SearchPage.jsx";
 import AdminPreviewProfile from "../pages/Admin/SearchProfilePreview.jsx";
-//User Part
-import UserHome from "../pages/Devlopers/Dashboard";
+import AdminProfile from "../pages/Admin/AdminProfile.jsx";
+
+// User components
+import UserHome from "../pages/Devlopers/Dashboard.jsx";
 import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
 import UserAskQuestion from "../pages/Devlopers/UserAskQuestion.jsx";
 import UserQuestionDetail from "../pages/Devlopers/UserQuestionDetail.jsx";
@@ -28,24 +34,38 @@ import UserSavedQuestion from "../pages/Devlopers/UserSavedQuestion.jsx";
 import UserTags from "../pages/Devlopers/Tags.jsx";
 import UserMyPosts from "../pages/Devlopers/UserMyPosts.jsx";
 import UserEditQuestion from "../pages/Devlopers/UserEditQuestion.jsx";
-import UserProfile from "../pages/Devlopers/UserProfile.jsx";
 import UserSearchUsers from "../pages/Devlopers/UserSearchUsers.jsx";
 import UserSearchPreview from "../pages/Devlopers/UserSearchPreview.jsx";
+import UserProfile from "../pages/Devlopers/UserProfile.jsx";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Home page - standalone */}
+      {/* Home page - public access */}
       <Route path="/" element={<Home />} />
 
-      {/* Auth pages - wrapped in AuthLayout */}
-      <Route path="/auth" element={<AuthLayout />}>
+      {/* Auth pages - only accessible when not authenticated */}
+      <Route
+        path="/auth"
+        element={
+          <AuthRoute>
+            <AuthLayout />
+          </AuthRoute>
+        }
+      >
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
       </Route>
 
-      {/* Protected Dashboards */}
-      <Route path="/admin" element={<AdminLayout />}>
+      {/* Admin Dashboard - requires admin role */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="home" element={<AdminHome />} />
         <Route path="questions" element={<AdminQuestions />} />
         <Route path="questions/ask" element={<AskQuestions />} />
@@ -59,7 +79,15 @@ export default function AppRoutes() {
         <Route path="profile" element={<AdminProfile />} />
       </Route>
 
-      <Route path="/user" element={<DeveloperLayout />}>
+      {/* User Dashboard - requires authentication (any role) */}
+      <Route
+        path="/user"
+        element={
+          <ProtectedRoute requireAdmin={false}>
+            <DeveloperLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="home" element={<UserHome />} />
         <Route path="questions" element={<UserQuestions />} />
         <Route path="questions/ask" element={<UserAskQuestion />} />
@@ -72,6 +100,9 @@ export default function AppRoutes() {
         <Route path="search/:id" element={<UserSearchPreview />} />
         <Route path="profile" element={<UserProfile />} />
       </Route>
+
+      {/* Catch all route - redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -1,13 +1,18 @@
-import React from "react";
-import AppRoutes from "./routes/AppRoutes";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from 'react-router-dom';
+import { useEffect } from 'react';
+import AppRoutes from './routes/AppRoutes';
+import { initializeAuth } from './utils/authUtils';
 
-export default function App() {
+function App() {
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
   return (
-    <>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }
+
+export default App;

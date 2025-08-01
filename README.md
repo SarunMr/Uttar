@@ -14,7 +14,7 @@ This project is divided into a modern frontend built with **React**, **Vite**, a
 - **User Search** - Find and connect with other community members
 - **Content Management** - Manage your own posts and questions
 - **Bookmarking System** - Save questions for later reference
-- **Tag System** - Organize content with color-coded tags (admin=red, request=blue, general=gray)
+- **Tag System** - Organize content with color-coded tags (admin=cyan, request=orange, general=gray)
 - **Engagement Features** - Like questions, view counts, and comment system
 - **Personal Dashboard** - Activity statistics and quick actions
 
@@ -373,8 +373,8 @@ Uttar/
 
 - **Primary Theme:** Cyan (`#06b6d4`) - Used throughout user interface
 - **Tag Color Coding:**
-  - **Admin tags:** Red background (`bg-red-100 text-red-800`)
-  - **Request tags:** Blue background (`bg-blue-100 text-blue-800`)
+  - **Admin tags:** Red background (`bg-cyan-100 text-cyan-800`)
+  - **Request tags:** Blue background (`bg-orange-100 text-orange-800`)
   - **General tags:** Gray background (`bg-gray-100 text-gray-600`)
 
 ### **User Experience**
