@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -588,8 +587,8 @@ export default function UserQuestionDetail() {
                       : tagName === "request"
                         ? "bg-orange-100 text-orange-800 border border-orange-200"
                         : tagName === "unknown"
-                        ? "bg-gray-100 text-gray-600 border border-gray-200"
-                        : "bg-cyan-100 text-cyan-800 border border-cyan-200",
+                          ? "bg-gray-100 text-gray-600 border border-gray-200"
+                          : "bg-gray-100 text-gray-800 border border-gray-200",
                   )}
                 >
                   <Tag className="h-3 w-3" />

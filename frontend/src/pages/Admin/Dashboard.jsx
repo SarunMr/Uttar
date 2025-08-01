@@ -443,23 +443,38 @@ export default function AdminHome() {
                     </div>
                   </div>
                   {/* Question Tags */}
-                  {question.tags && question.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {question.tags.slice(0, 2).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 text-xs bg-cyan-100 text-cyan-800 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {question.tags.length > 2 && (
-                        <span className="text-xs text-gray-500">
-                          +{question.tags.length - 2} more
-                        </span>
-                      )}
-                    </div>
-                  )}
+{question.tags && question.tags.length > 0 && (
+  <div className="flex flex-wrap gap-1">
+    {question.tags.slice(0, 2).map((tag, index) => {
+      // Function to get tag color based on tag name
+      const getTagColor = (tagName) => {
+        const lowerTag = tagName.toLowerCase();
+        switch (lowerTag) {
+          case 'admin':
+            return "px-2 py-1 text-xs bg-cyan-100 text-cyan-800 rounded-full font-medium";
+          case 'request':
+            return "px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full font-medium";
+          default:
+            return "px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full";
+        }
+      };
+
+      return (
+        <span
+          key={index}
+          className={getTagColor(tag)}
+        >
+          {tag}
+        </span>
+      );
+    })}
+    {question.tags.length > 2 && (
+      <span className="text-xs text-gray-500">
+        +{question.tags.length - 2} more
+      </span>
+    )}
+  </div>
+)}
                 </div>
               ))}
             </div>

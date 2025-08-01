@@ -29,6 +29,7 @@ import UserTags from "../pages/Devlopers/Tags.jsx";
 import UserMyPosts from "../pages/Devlopers/UserMyPosts.jsx";
 import UserEditQuestion from "../pages/Devlopers/UserEditQuestion.jsx";
 import UserProfile from "../pages/Devlopers/UserProfile.jsx";
+import UserSearchUsers from "../pages/Devlopers/UserSearchUsers.jsx";
 
 export default function AppRoutes() {
   return (
@@ -66,6 +67,7 @@ export default function AppRoutes() {
         <Route path="tags" element={<UserTags />} />
         <Route path="my-posts" element={<UserMyPosts />} />
         <Route path="my-posts/edit/:id" element={<UserEditQuestion />} />
+        <Route path="search" element={<UserSearchUsers />} />
         <Route path="profile" element={<UserProfile />} />
       </Route>
     </Routes>
