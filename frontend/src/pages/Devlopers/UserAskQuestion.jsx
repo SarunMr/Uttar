@@ -450,7 +450,7 @@ export default function UserAskQuestion() {
       formData.append("content", questionForm.content.trim());
 
       // Append tags
-    formData.append("tags", JSON.stringify(questionForm.tags));
+      questionForm.tags.forEach((tag) => formData.append("tags", tag));
 
       // Append image files
       selectedFiles.forEach((file) => {
