@@ -13,6 +13,9 @@ const tagRoutes = require("./routes/tags");
 const questionRoutes = require("./routes/question.js");
 const commentRoutes = require("./routes/comments.js")
 const profileRoutes = require("./routes/profile.js")
+const dashboardRoutes = require('./routes/dashboard');
+ 
+//associations
 require("./models/associations.js");
 
 // Create Express app
@@ -54,6 +57,7 @@ app.use("/api/tags", tagRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // 404 handler
 app.use((req, res) => {
