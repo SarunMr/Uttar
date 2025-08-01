@@ -258,25 +258,55 @@ async function createQuestion(req, res) {
 // Fetch all questions with author included
 async function getQuestions(req, res) {
   try {
-    const questions = await Question.findAll({
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10; // This was missing!
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
+
+    console.log(`getQuestions called with limit: ${limit}, page: ${page}`);
+
+    // Build search condition if search parameter is provided
+    const searchCondition = search
+      ? {
+          [Op.or]: [
+            { title: { [Op.iLike]: `%${search}%` } },
+            { description: { [Op.iLike]: `%${search}%` } },
+            { content: { [Op.iLike]: `%${search}%` } },
+          ],
+        }
+      : {};
+
+    const { count, rows } = await Question.findAndCountAll({
+      where: searchCondition,
       include: [
         {
           model: User,
           as: "author",
           attributes: ["id", "username", "firstName", "lastName"],
         },
+        {
+          model: Comment,
+          as: "questionComments",
+          attributes: ["id"],
+          required: false,
+        },
       ],
       order: [["createdAt", "DESC"]],
+      limit, // Apply the limit
+      offset, // Apply the offset for pagination
+      distinct: true,
     });
 
-    const transformedQuestions = questions.map((question) => {
+    console.log(`Returning ${rows.length} questions (requested limit: ${limit})`);
+
+    const transformedQuestions = rows.map((question) => {
       const questionData = question.toJSON();
       return {
         ...questionData,
         tags: questionData.tags || [],
         likes: Math.max(0, questionData.likes || 0),
         views: Math.max(0, questionData.views || 0),
-        commentsCount: Math.max(0, questionData.commentsCount || 0),
+        commentsCount: questionData.questionComments?.length || 0,
         author: questionData.author || {
           id: questionData.authorId,
           username: "Unknown",
@@ -286,7 +316,19 @@ async function getQuestions(req, res) {
       };
     });
 
-    res.json({ success: true, data: transformedQuestions });
+    res.json({ 
+      success: true, 
+      data: transformedQuestions,
+      // Include pagination info for better frontend handling
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(count / limit),
+        totalItems: count,
+        itemsPerPage: limit,
+        hasNext: page < Math.ceil(count / limit),
+        hasPrev: page > 1,
+      },
+    });
   } catch (error) {
     console.error("Error fetching questions:", error);
     res.status(500).json({
