@@ -18,6 +18,9 @@ const dashboardRoutes = require("./routes/dashboard");
 const adminUserRoutes = require("./routes/adminUser.js");
 const adminPostRoutes = require("./routes/adminPosts"); // Add this line
 
+const userRoutes = require('./routes/users');
+
+
 //associations
 require("./models/associations.js");
 
@@ -67,6 +70,9 @@ app.use("/api/dashboard", dashboardRoutes);
 // Mount admin routes
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/admin/posts", adminPostRoutes); // Add this line
+
+
+app.use("/api/users", userRoutes);
 
 // 404 handler
 app.use((req, res) => {
