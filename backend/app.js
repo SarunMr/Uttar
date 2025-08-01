@@ -11,10 +11,13 @@ const { testConnection } = require("./viable/db");
 const authRoutes = require("./routes/auth");
 const tagRoutes = require("./routes/tags");
 const questionRoutes = require("./routes/question.js");
-const commentRoutes = require("./routes/comments.js")
-const profileRoutes = require("./routes/profile.js")
-const dashboardRoutes = require('./routes/dashboard');
- 
+const commentRoutes = require("./routes/comments.js");
+const profileRoutes = require("./routes/profile.js");
+const dashboardRoutes = require("./routes/dashboard");
+
+const adminUserRoutes = require("./routes/adminUser.js");
+const adminPostRoutes = require("./routes/adminPosts"); // Add this line
+
 //associations
 require("./models/associations.js");
 
@@ -58,6 +61,12 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
+// Import admin routes
+
+// Mount admin routes
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/posts", adminPostRoutes); // Add this line
 
 // 404 handler
 app.use((req, res) => {

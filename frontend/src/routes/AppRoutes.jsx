@@ -18,6 +18,7 @@ import EditQuestion from "../pages/Admin/EditQuestion.jsx";
 import SavedQuestion from "../pages/Admin/SavedQuestion.jsx";
 import AdminProfile from "../pages/Admin/AdminProfile.jsx";
 import AdminSearchUsers from "../pages/Admin/SearchPage.jsx";
+import AdminPreviewProfile from "../pages/Admin/SearchProfilePreview.jsx"
 //User Part
 import UserHome from "../pages/Devlopers/Dashboard";
 import UserQuestions from "../pages/Devlopers/UserQuestions.jsx";
@@ -52,6 +53,7 @@ export default function AppRoutes() {
         <Route path="my-posts" element={<MyPost />} />
         <Route path="my-posts/edit/:id" element={<EditQuestion />} />
         <Route path="search" element={<AdminSearchUsers />} />
+        <Route path="search/:id" element={<AdminPreviewProfile />} />
         <Route path="profile" element={<AdminProfile />} />
       </Route>
 
